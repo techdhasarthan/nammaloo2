@@ -16,7 +16,6 @@ export default function ProfileScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       
       <SafeAreaView style={styles.safeArea}>
-        {/* Back Button with PROPER spacing under status bar */}
         <View style={styles.headerContainer}>
           <TouchableOpacity 
             style={styles.headerButton}
@@ -26,7 +25,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
           
-        {/* Profile Title */}
         <View style={styles.profileHeader}>
           <Text style={styles.profileTitle}>Profile</Text>
         </View>
@@ -36,82 +34,80 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-        {/* Saved Toilets Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleContainer}>
-              <BookmarkCheck size={24} color="#10B981" />
-              <Text style={styles.sectionTitle}>Saved Toilets</Text>
-            </View>
-          </View>
-          
-          <View style={styles.savedToiletsContent}>
-            <View style={styles.savedToiletsStats}>
-              <Text style={styles.savedCount}>{savedToiletsCount}</Text>
-              <Text style={styles.savedLabel}>Toilets Saved</Text>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <BookmarkCheck size={24} color="#10B981" />
+                <Text style={styles.sectionTitle}>Saved Toilets</Text>
+              </View>
             </View>
             
-            <View style={styles.savedToiletsPlaceholder}>
-              <BookmarkCheck size={48} color="#D1D5DB" />
-              <Text style={styles.placeholderText}>
-                No saved toilets yet
-              </Text>
-              <Text style={styles.placeholderSubtext}>
-                Start exploring and save your favorite toilets for quick access
-              </Text>
+            <View style={styles.savedToiletsContent}>
+              <View style={styles.savedToiletsStats}>
+                <Text style={styles.savedCount}>{savedToiletsCount}</Text>
+                <Text style={styles.savedLabel}>Toilets Saved</Text>
+              </View>
+              
+              <View style={styles.savedToiletsPlaceholder}>
+                <BookmarkCheck size={48} color="#D1D5DB" />
+                <Text style={styles.placeholderText}>
+                  No saved toilets yet
+                </Text>
+                <Text style={styles.placeholderSubtext}>
+                  Start exploring and save your favorite toilets for quick access
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* About Us Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleContainer}>
-              <Info size={24} color="#EF4444" />
-              <Text style={styles.sectionTitle}>About Us</Text>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <Info size={24} color="#EF4444" />
+                <Text style={styles.sectionTitle}>About Us</Text>
+              </View>
+            </View>
+            
+            <View style={styles.aboutContent}>
+              <Text style={styles.aboutTitle}>Namma Loo</Text>
+              <Text style={styles.aboutVersion}>Version 1.0.0</Text>
+              
+              <Text style={styles.aboutDescription}>
+                Namma Loo is your smart toilet finder app, designed to help you locate clean, 
+                accessible, and well-maintained public toilets in your area. Our mission is to 
+                make urban navigation more comfortable and convenient for everyone.
+              </Text>
+              
+              <View style={styles.aboutTeam}>
+                <Text style={styles.aboutSubtitle}>Developed by</Text>
+                <Text style={styles.aboutTeamName}>Sprint6 Team</Text>
+              </View>
+              
+              <View style={styles.aboutFeatures}>
+                <Text style={styles.aboutSubtitle}>Features:</Text>
+                <Text style={styles.aboutFeatureItem}>
+                  • Real-time toilet locator with GPS
+                </Text>
+                <Text style={styles.aboutFeatureItem}>
+                  • User reviews and ratings
+                </Text>
+                <Text style={styles.aboutFeatureItem}>
+                  • Accessibility information
+                </Text>
+                <Text style={styles.aboutFeatureItem}>
+                  • Save your favorite locations
+                </Text>
+                <Text style={styles.aboutFeatureItem}>
+                  • Working hours and availability
+                </Text>
+              </View>
+              
+              <Text style={styles.aboutFooter}>
+                Making public facilities accessible to all. Thank you for using Namma Loo!
+              </Text>
             </View>
           </View>
-          
-          <View style={styles.aboutContent}>
-            <Text style={styles.aboutTitle}>Namma Loo</Text>
-            <Text style={styles.aboutVersion}>Version 1.0.0</Text>
-            
-            <Text style={styles.aboutDescription}>
-              Namma Loo is your smart toilet finder app, designed to help you locate clean, 
-              accessible, and well-maintained public toilets in your area. Our mission is to 
-              make urban navigation more comfortable and convenient for everyone.
-            </Text>
-            
-            <View style={styles.aboutTeam}>
-              <Text style={styles.aboutSubtitle}>Developed by</Text>
-              <Text style={styles.aboutTeamName}>Sprint6 Team</Text>
-            </View>
-            
-            <View style={styles.aboutFeatures}>
-              <Text style={styles.aboutSubtitle}>Features:</Text>
-              <Text style={styles.aboutFeatureItem}>
-                • Real-time toilet locator with GPS
-              </Text>
-              <Text style={styles.aboutFeatureItem}>
-                • User reviews and ratings
-              </Text>
-              <Text style={styles.aboutFeatureItem}>
-                • Accessibility information
-              </Text>
-              <Text style={styles.aboutFeatureItem}>
-                • Save your favorite locations
-              </Text>
-              <Text style={styles.aboutFeatureItem}>
-                • Working hours and availability
-              </Text>
-            </View>
-            
-            <Text style={styles.aboutFooter}>
-              Making public facilities accessible to all. Thank you for using Namma Loo!
-            </Text>
-          </View>
-        </View>
-              </ScrollView>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -126,8 +122,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  
-  // Header Container - PROPERLY positioned under status bar
   headerContainer: {
     paddingHorizontal: 24,
     paddingTop: 20,
@@ -147,8 +141,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-  
-  // Profile Header
   profileHeader: {
     alignItems: 'center',
     paddingVertical: 24,
@@ -167,8 +159,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
   },
-  
-  // Scroll Container
   scrollContainer: {
     flex: 1,
   },
@@ -176,8 +166,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 40,
   },
-  
-  // Section Styles
   section: {
     marginVertical: 12,
     backgroundColor: '#FFFFFF',
@@ -202,8 +190,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
   },
-  
-  // Saved Toilets Styles
   savedToiletsContent: {
     alignItems: 'center',
   },
@@ -239,8 +225,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  
-  // About Us Styles
   aboutContent: {
     gap: 16,
   },

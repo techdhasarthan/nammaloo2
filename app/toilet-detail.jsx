@@ -1,353 +1,277 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  ScrollView,
-  StatusBar,
-  Alert,
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Image, 
+  ScrollView, 
+  SafeAreaView 
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  ArrowLeft,
-  Star,
-  MapPin,
-  Clock,
-  Navigation,
-  Share,
-  Bookmark,
-  Info,
+import { 
+  ArrowLeft, 
+  Star, 
+  MapPin, 
+  Clock, 
+  Navigation, 
+  Share, 
+  Heart,
+  Phone,
+  Wifi,
+  Car
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
-
-// Mock data for toilet details
-const mockToiletDetails = {
-  'toilet-001': {
-    id: 'toilet-001',
-    name: 'Phoenix MarketCity Mall Restroom',
-    address: 'Whitefield Main Road, Mahadevapura, Bangalore',
-    rating: 4.5,
-    reviews: 127,
-    distance: '2.3 km',
-    duration: '8 mins',
-    image_url: 'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '10:00 AM - 10:00 PM',
-    is_paid: 'No',
-    wheelchair: 'Yes',
-    gender: 'Unisex',
-    baby: 'Yes',
-    shower: 'No',
-    westernorindian: 'Western',
-    description: 'Clean and well-maintained restroom facility located in Phoenix MarketCity Mall. Features modern amenities and accessibility options.',
-    features: ['Free', 'Wheelchair Accessible', 'Baby Changing', 'Western Style', 'Unisex']
-  },
-  'toilet-002': {
-    id: 'toilet-002',
-    name: 'Cubbon Park Public Toilet',
-    address: 'Cubbon Park, Kasturba Road, Bangalore',
-    rating: 4.2,
-    reviews: 89,
-    distance: '1.8 km',
-    duration: '6 mins',
-    image_url: 'https://images.pexels.com/photos/6585756/pexels-photo-6585756.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '6:00 AM - 8:00 PM',
-    is_paid: 'No',
-    wheelchair: 'Yes',
-    gender: 'Separate',
-    baby: 'Yes',
-    shower: 'No',
-    westernorindian: 'Both',
-    description: 'Public restroom facility in the heart of Cubbon Park. Well-maintained with separate facilities for men and women.',
-    features: ['Free', 'Wheelchair Accessible', 'Baby Changing', 'Both Styles', 'Separate Facilities']
-  }
-};
-
-export default function ToiletDetailPage() {
+export default function ToiletDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [toilet, setToilet] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
-
-  useEffect(() => {
-    const toiletId = params.toiletId;
-    if (toiletId) {
-      loadToiletData(toiletId);
-    }
-  }, [params.toiletId]);
-
-  const loadToiletData = async (toiletId) => {
-    try {
-      setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const toiletData = mockToiletDetails[toiletId] || mockToiletDetails['toilet-001'];
-      setToilet(toiletData);
-    } catch (error) {
-      console.error('Error loading toilet data:', error);
-      Alert.alert('Error', 'Failed to load toilet details.');
-    } finally {
-      setLoading(false);
-    }
+  
+  const toilet = {
+    id: params.id,
+    name: params.name,
+    address: params.address,
+    rating: parseFloat(params.rating),
+    reviews: parseInt(params.reviews),
+    distance: params.distance,
+    image: params.image,
+    isOpen: params.isOpen === 'true',
+    features: JSON.parse(params.features || '[]'),
   };
 
-  const handleDirections = () => {
-    Alert.alert('Directions', 'Opening navigation app...');
-  };
+  const additionalFeatures = [
+    { icon: Wifi, label: 'Free WiFi', available: true },
+    { icon: Car, label: 'Parking', available: true },
+    { icon: Phone, label: 'Emergency Call', available: false },
+  ];
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    Alert.alert(
-      isSaved ? 'Removed' : 'Saved',
-      isSaved ? 'Toilet removed from saved list.' : 'Toilet saved to your favorites!'
-    );
-  };
-
-  const handleShare = () => {
-    Alert.alert('Share', 'Sharing toilet information...');
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading toilet details...</Text>
-      </View>
-    );
-  }
-
-  if (!toilet) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Toilet not found</Text>
-        <TouchableOpacity
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity 
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <ArrowLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent
-      />
-      
-      {/* Header Image */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: toilet.image_url }}
-          style={styles.headerImage}
-        />
-        <SafeAreaView style={styles.header}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={24} color="#1a1a1a" />
+        
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Heart size={20} color="#EF4444" />
           </TouchableOpacity>
-        </SafeAreaView>
+          <TouchableOpacity style={styles.actionButton}>
+            <Share size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Content */}
-      <ScrollView 
-        style={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Basic Info */}
-        <View style={styles.infoSection}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Hero Image */}
+        <Image source={{ uri: toilet.image }} style={styles.heroImage} />
+        
+        {/* Status Badge */}
+        <View style={[styles.statusBadge, { 
+          backgroundColor: toilet.isOpen ? '#10B981' : '#EF4444' 
+        }]}>
+          <Text style={styles.statusText}>
+            {toilet.isOpen ? 'Open Now' : 'Closed'}
+          </Text>
+        </View>
+
+        {/* Main Info */}
+        <View style={styles.mainInfo}>
           <Text style={styles.toiletName}>{toilet.name}</Text>
           <Text style={styles.toiletAddress}>{toilet.address}</Text>
           
           <View style={styles.metaRow}>
             <View style={styles.ratingContainer}>
-              <Star size={16} color="#FFD700" fill="#FFD700" />
-              <Text style={styles.ratingText}>{toilet.rating.toFixed(1)}</Text>
-              <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
+              <Star size={16} color="#F59E0B" fill="#F59E0B" />
+              <Text style={styles.ratingText}>{toilet.rating}</Text>
+              <Text style={styles.reviewText}>({toilet.reviews} reviews)</Text>
             </View>
             
             <View style={styles.distanceContainer}>
-              <MapPin size={16} color="#34C759" />
+              <MapPin size={16} color="#6B7280" />
               <Text style={styles.distanceText}>{toilet.distance}</Text>
-              <Text style={styles.durationText}>• {toilet.duration}</Text>
             </View>
           </View>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.primaryButton]}
-            onPress={handleDirections}
-          >
-            <Navigation size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>Navigate</Text>
+          <TouchableOpacity style={styles.primaryButton}>
+            <Navigation size={20} color="#FFFFFF" />
+            <Text style={styles.primaryButtonText}>Get Directions</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={handleSave}
-          >
-            <Bookmark
-              size={20}
-              color={isSaved ? '#FFFFFF' : '#007AFF'}
-              fill={isSaved ? '#FFFFFF' : 'none'}
-            />
-            <Text style={[
-              styles.secondaryButtonText,
-              isSaved && styles.savedButtonText
-            ]}>
-              {isSaved ? 'Saved' : 'Save'}
-            </Text>
+          <TouchableOpacity style={styles.secondaryButton}>
+            <Phone size={20} color="#3B82F6" />
+            <Text style={styles.secondaryButtonText}>Call</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={handleShare}
-          >
-            <Share size={20} color="#007AFF" />
-            <Text style={styles.secondaryButtonText}>Share</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Working Hours */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Working Hours</Text>
-          <View style={styles.hoursContainer}>
-            <Clock size={20} color="#34C759" />
-            <Text style={styles.hoursText}>{toilet.working_hours}</Text>
-          </View>
         </View>
 
         {/* Features */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Features & Amenities</Text>
-          <View style={styles.featuresContainer}>
+          <View style={styles.featuresGrid}>
             {toilet.features.map((feature, index) => (
-              <View key={index} style={styles.featureBadge}>
+              <View key={index} style={styles.featureItem}>
                 <Text style={styles.featureText}>{feature}</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* Description */}
+        {/* Additional Features */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.description}>{toilet.description}</Text>
+          <Text style={styles.sectionTitle}>Additional Services</Text>
+          {additionalFeatures.map((feature, index) => (
+            <View key={index} style={styles.serviceItem}>
+              <View style={[styles.serviceIcon, { 
+                backgroundColor: feature.available ? '#DCFCE7' : '#FEF2F2' 
+              }]}>
+                <feature.icon 
+                  size={20} 
+                  color={feature.available ? '#16A34A' : '#DC2626'} 
+                />
+              </View>
+              <Text style={[styles.serviceText, { 
+                color: feature.available ? '#1F2937' : '#9CA3AF' 
+              }]}>
+                {feature.label}
+              </Text>
+              <Text style={[styles.serviceStatus, { 
+                color: feature.available ? '#16A34A' : '#DC2626' 
+              }]}>
+                {feature.available ? 'Available' : 'Not Available'}
+              </Text>
+            </View>
+          ))}
         </View>
 
-        {/* Details */}
+        {/* Working Hours */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Details</Text>
-          <View style={styles.detailsContainer}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Cost:</Text>
-              <Text style={styles.detailValue}>{toilet.is_paid === 'No' ? 'Free' : 'Paid'}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Accessibility:</Text>
-              <Text style={styles.detailValue}>{toilet.wheelchair === 'Yes' ? 'Wheelchair Accessible' : 'Not Accessible'}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Gender:</Text>
-              <Text style={styles.detailValue}>{toilet.gender}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Type:</Text>
-              <Text style={styles.detailValue}>{toilet.westernorindian}</Text>
+          <Text style={styles.sectionTitle}>Working Hours</Text>
+          <View style={styles.hoursContainer}>
+            <Clock size={20} color="#6B7280" />
+            <View style={styles.hoursInfo}>
+              <Text style={styles.hoursText}>Open 24 Hours</Text>
+              <Text style={styles.hoursSubtext}>Available all day, every day</Text>
             </View>
           </View>
         </View>
+
+        {/* Reviews Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recent Reviews</Text>
+          
+          {[1, 2, 3].map((review) => (
+            <View key={review} style={styles.reviewItem}>
+              <View style={styles.reviewHeader}>
+                <View style={styles.reviewAvatar}>
+                  <Text style={styles.reviewAvatarText}>U{review}</Text>
+                </View>
+                <View style={styles.reviewInfo}>
+                  <Text style={styles.reviewUser}>User {review}</Text>
+                  <View style={styles.reviewRating}>
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        size={12} 
+                        color="#F59E0B" 
+                        fill={i < 4 ? "#F59E0B" : "transparent"} 
+                      />
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.reviewDate}>2 days ago</Text>
+              </View>
+              <Text style={styles.reviewText}>
+                Clean and well-maintained facility. Easy to find and accessible.
+              </Text>
+            </View>
+          ))}
+          
+          <TouchableOpacity style={styles.viewAllButton}>
+            <Text style={styles.viewAllText}>View All Reviews</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
-  },
-  backButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  imageContainer: {
-    height: SCREEN_HEIGHT * 0.3,
-    position: 'relative',
-  },
-  headerImage: {
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#F8FAFC',
   },
   header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
-  content: {
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
     flex: 1,
-    backgroundColor: '#fff',
+  },
+  heroImage: {
+    width: '100%',
+    height: 240,
+    backgroundColor: '#E5E7EB',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 260,
+    right: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  statusText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  mainInfo: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    marginTop: -20,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    marginTop: -24,
-  },
-  infoSection: {
-    padding: 20,
-    paddingBottom: 16,
   },
   toiletName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 4,
+    color: '#1F2937',
+    marginBottom: 8,
   },
   toiletAddress: {
     fontSize: 16,
-    color: '#666',
+    color: '#6B7280',
     marginBottom: 16,
   },
   metaRow: {
@@ -362,12 +286,12 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#1F2937',
     marginLeft: 4,
   },
-  reviewCount: {
+  reviewText: {
     fontSize: 14,
-    color: '#666',
+    color: '#6B7280',
     marginLeft: 4,
   },
   distanceContainer: {
@@ -376,112 +300,176 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#34C759',
-    marginLeft: 6,
-  },
-  durationText: {
-    fontSize: 14,
-    color: '#666',
+    color: '#6B7280',
     marginLeft: 4,
   },
   actionButtons: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    gap: 8,
-    marginBottom: 20,
+    paddingVertical: 16,
+    gap: 12,
   },
-  actionButton: {
+  primaryButton: {
+    flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 6,
-    flex: 1,
-  },
-  primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#3B82F6',
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 8,
   },
   primaryButtonText: {
-    color: '#fff',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: '#f0f8ff',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#3B82F6',
+    gap: 8,
   },
   secondaryButtonText: {
-    color: '#007AFF',
-    fontSize: 14,
+    color: '#3B82F6',
+    fontSize: 16,
     fontWeight: '600',
   },
-  savedButtonText: {
-    color: '#FFFFFF',
-  },
   section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 12,
+    color: '#1F2937',
+    marginBottom: 16,
   },
-  hoursContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  hoursText: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  featuresContainer: {
+  featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  featureBadge: {
-    backgroundColor: '#e3f2fd',
+  featureItem: {
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   featureText: {
-    fontSize: 12,
-    color: '#1976d2',
+    fontSize: 14,
+    color: '#1D4ED8',
     fontWeight: '500',
   },
-  description: {
+  serviceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  serviceIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  serviceText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  serviceStatus: {
     fontSize: 14,
-    color: '#555',
+    fontWeight: '500',
+  },
+  hoursContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  hoursInfo: {
+    marginLeft: 16,
+  },
+  hoursText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  hoursSubtext: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  reviewItem: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  reviewAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  reviewAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  reviewInfo: {
+    flex: 1,
+  },
+  reviewUser: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#6B7280',
     lineHeight: 20,
   },
-  detailsContainer: {
-    gap: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  viewAllButton: {
     alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    paddingVertical: 16,
+    marginTop: 8,
   },
-  detailLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
+  viewAllText: {
+    fontSize: 16,
+    color: '#3B82F6',
     fontWeight: '600',
   },
 });

@@ -1,115 +1,126 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, StatusBar } from 'react-native';
-import { ArrowLeft, BookmarkCheck, Info } from 'lucide-react-native';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  SafeAreaView 
+} from 'react-native';
+import { 
+  User, 
+  Settings, 
+  Heart, 
+  MapPin, 
+  Star, 
+  Bell, 
+  HelpCircle,
+  ChevronRight 
+} from 'lucide-react-native';
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const [savedToiletsCount, setSavedToiletsCount] = useState(0);
-
-  const handleBackPress = () => {
-    router.back();
-  };
+  const menuItems = [
+    {
+      icon: Heart,
+      title: 'Saved Toilets',
+      subtitle: '5 locations saved',
+      color: '#EF4444',
+    },
+    {
+      icon: MapPin,
+      title: 'Recent Visits',
+      subtitle: 'View your history',
+      color: '#3B82F6',
+    },
+    {
+      icon: Star,
+      title: 'My Reviews',
+      subtitle: '12 reviews written',
+      color: '#F59E0B',
+    },
+    {
+      icon: Bell,
+      title: 'Notifications',
+      subtitle: 'Manage preferences',
+      color: '#10B981',
+    },
+    {
+      icon: Settings,
+      title: 'Settings',
+      subtitle: 'App preferences',
+      color: '#6B7280',
+    },
+    {
+      icon: HelpCircle,
+      title: 'Help & Support',
+      subtitle: 'Get assistance',
+      color: '#8B5CF6',
+    },
+  ];
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-      
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity 
-            style={styles.headerButton}
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={24} color="#1a1a1a" />
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <User size={32} color="#FFFFFF" />
+            </View>
+            <View style={styles.onlineIndicator} />
+          </View>
+          
+          <Text style={styles.userName}>Guest User</Text>
+          <Text style={styles.userLocation}>Bangalore, Karnataka</Text>
+          
+          <TouchableOpacity style={styles.editButton}>
+            <Text style={styles.editButtonText}>Sign In / Sign Up</Text>
           </TouchableOpacity>
         </View>
-          
-        <View style={styles.profileHeader}>
-          <Text style={styles.profileTitle}>Profile</Text>
+
+        {/* Stats Cards */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statLabel}>Reviews</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>5</Text>
+            <Text style={styles.statLabel}>Saved</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>28</Text>
+            <Text style={styles.statLabel}>Visits</Text>
+          </View>
         </View>
 
-        <ScrollView 
-          style={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleContainer}>
-                <BookmarkCheck size={24} color="#10B981" />
-                <Text style={styles.sectionTitle}>Saved Toilets</Text>
-              </View>
-            </View>
-            
-            <View style={styles.savedToiletsContent}>
-              <View style={styles.savedToiletsStats}>
-                <Text style={styles.savedCount}>{savedToiletsCount}</Text>
-                <Text style={styles.savedLabel}>Toilets Saved</Text>
+        {/* Menu Items */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
+            <TouchableOpacity key={index} style={styles.menuItem}>
+              <View style={[styles.menuIcon, { backgroundColor: item.color }]}>
+                <item.icon size={20} color="#FFFFFF" />
               </View>
               
-              <View style={styles.savedToiletsPlaceholder}>
-                <BookmarkCheck size={48} color="#D1D5DB" />
-                <Text style={styles.placeholderText}>
-                  No saved toilets yet
-                </Text>
-                <Text style={styles.placeholderSubtext}>
-                  Start exploring and save your favorite toilets for quick access
-                </Text>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>{item.title}</Text>
+                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
               </View>
-            </View>
-          </View>
+              
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          ))}
+        </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleContainer}>
-                <Info size={24} color="#EF4444" />
-                <Text style={styles.sectionTitle}>About Us</Text>
-              </View>
-            </View>
-            
-            <View style={styles.aboutContent}>
-              <Text style={styles.aboutTitle}>Namma Loo</Text>
-              <Text style={styles.aboutVersion}>Version 1.0.0</Text>
-              
-              <Text style={styles.aboutDescription}>
-                Namma Loo is your smart toilet finder app, designed to help you locate clean, 
-                accessible, and well-maintained public toilets in your area. Our mission is to 
-                make urban navigation more comfortable and convenient for everyone.
-              </Text>
-              
-              <View style={styles.aboutTeam}>
-                <Text style={styles.aboutSubtitle}>Developed by</Text>
-                <Text style={styles.aboutTeamName}>Sprint6 Team</Text>
-              </View>
-              
-              <View style={styles.aboutFeatures}>
-                <Text style={styles.aboutSubtitle}>Features:</Text>
-                <Text style={styles.aboutFeatureItem}>
-                  • Real-time toilet locator with GPS
-                </Text>
-                <Text style={styles.aboutFeatureItem}>
-                  • User reviews and ratings
-                </Text>
-                <Text style={styles.aboutFeatureItem}>
-                  • Accessibility information
-                </Text>
-                <Text style={styles.aboutFeatureItem}>
-                  • Save your favorite locations
-                </Text>
-                <Text style={styles.aboutFeatureItem}>
-                  • Working hours and availability
-                </Text>
-              </View>
-              
-              <Text style={styles.aboutFooter}>
-                Making public facilities accessible to all. Thank you for using Namma Loo!
-              </Text>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+        {/* App Info */}
+        <View style={styles.appInfo}>
+          <Text style={styles.appName}>Toilet Finder</Text>
+          <Text style={styles.appVersion}>Version 1.0.0</Text>
+          <Text style={styles.appDescription}>
+            Find clean and accessible toilets near you with real-time information and user reviews.
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -118,162 +129,157 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  safeArea: {
+  scrollView: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
-  headerContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
-    backgroundColor: '#F8FAFC',
-  },
-  headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  profileHeader: {
     backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 4,
   },
-  profileHeader: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    marginHorizontal: 24,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  profileTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  section: {
-    marginVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionHeader: {
+  avatarContainer: {
+    position: 'relative',
     marginBottom: 16,
   },
-  sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  savedToiletsContent: {
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  savedToiletsStats: {
-    alignItems: 'center',
-    marginBottom: 24,
+  onlineIndicator: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  savedCount: {
-    fontSize: 32,
+  userName: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
     marginBottom: 4,
   },
-  savedLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+  userLocation: {
+    fontSize: 16,
     color: '#6B7280',
+    marginBottom: 20,
   },
-  savedToiletsPlaceholder: {
-    alignItems: 'center',
-    paddingVertical: 20,
+  editButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
   },
-  placeholderText: {
+  editButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
-    marginTop: 16,
-    marginBottom: 8,
   },
-  placeholderSubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 20,
+  statsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    gap: 12,
   },
-  aboutContent: {
-    gap: 16,
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    paddingVertical: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  aboutTitle: {
+  statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
-    textAlign: 'center',
+    marginBottom: 4,
   },
-  aboutVersion: {
+  statLabel: {
     fontSize: 14,
     color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 8,
+    fontWeight: '500',
   },
-  aboutDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 22,
-    textAlign: 'center',
+  menuContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 32,
   },
-  aboutTeam: {
+  menuItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  aboutSubtitle: {
+  menuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  menuContent: {
+    flex: 1,
+  },
+  menuTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 8,
+    marginBottom: 2,
   },
-  aboutTeamName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3B82F6',
-  },
-  aboutFeatures: {
-    gap: 4,
-  },
-  aboutFeatureItem: {
+  menuSubtitle: {
     fontSize: 14,
     color: '#6B7280',
-    lineHeight: 20,
   },
-  aboutFooter: {
+  appInfo: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  appName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  appVersion: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  appDescription: {
     fontSize: 14,
     color: '#6B7280',
     textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 8,
+    lineHeight: 20,
+    paddingHorizontal: 20,
   },
 });

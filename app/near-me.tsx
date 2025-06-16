@@ -1,11 +1,11 @@
-// Complete Near Me Page with Google Distance API Integration - FIXED TEXT COMPONENT ERROR
+// Complete Near Me Page with Google Distance API Integration - FIXED IMPORTS
 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, RefreshCw, Navigation, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { getToiletsWithGoogleDistances, Toilet } from '@/lib/supabase';
+import { getNearby, Toilet } from '@/lib/api';
 import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
 import { getCurrentLocation, LocationData, testGoogleDistanceAPI, formatDistance } from '@/lib/location';
 import FeatureBadges from '@/components/FeatureBadges';
@@ -93,19 +93,25 @@ export default function NearMePage() {
         return;
       }
 
-      // Use Google Distance API for accurate distances
-      const nearbyToilets = await getToiletsWithGoogleDistances(
-        userLocation,
-        5, // 5km radius
-        25 // max toilets
-      );
+      // Use getNearby function from API
+      const nearbyToilets = await getNearby({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        radius: 5000, // 5km in meters
+        limit: 25
+      });
       
-      console.log('📊 Google distance toilets received:', nearbyToilets.length);
+      console.log('📊 Nearby toilets received:', nearbyToilets.length);
       
       if (nearbyToilets.length === 0) {
-        console.log('⚠️ No toilets within 5km using Google, trying 10km radius');
+        console.log('⚠️ No toilets within 5km, trying 10km radius');
         // Fallback: try 10km radius
-        const furtherToilets = await getToiletsWithGoogleDistances(userLocation, 10, 15);
+        const furtherToilets = await getNearby({
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          radius: 10000, // 10km in meters
+          limit: 15
+        });
         setToilets(furtherToilets);
         
         if (furtherToilets.length === 0) {
@@ -117,7 +123,7 @@ export default function NearMePage() {
       
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('❌ Error loading nearby toilets with Google distances:', error);
+      console.error('❌ Error loading nearby toilets:', error);
       Alert.alert(
         'Error Loading Toilets', 
         'Failed to load nearby toilets. Please check your internet connection and try again.',
@@ -145,15 +151,15 @@ export default function NearMePage() {
   };
 
   const navigateToToiletDetail = (toilet: Toilet) => {
-    console.log('🚀 Navigating to toilet detail:', toilet.uuid);
+    console.log('🚀 Navigating to toilet detail:', toilet._id);
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.uuid }
+      params: { toiletId: toilet._id }
     });
   };
 
   const getDistance = (toilet: Toilet): string => {
-    // Use Google distance text if available
+    // Use distance text if available
     if (toilet.distanceText && toilet.distanceText !== 'Unknown') {
       return toilet.distanceText;
     }
@@ -345,7 +351,7 @@ export default function NearMePage() {
           // Toilets List
           toilets.map((toilet, index) => (
             <TouchableOpacity 
-              key={toilet.uuid} 
+              key={toilet._id} 
               style={styles.toiletCard}
               onPress={() => navigateToToiletDetail(toilet)}
               activeOpacity={0.7}

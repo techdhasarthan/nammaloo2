@@ -1,11 +1,11 @@
-// FIXED OpenNowPage with proper features display and working hours formatting
+// FIXED OpenNowPage with proper imports and API integration
 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { getOpenToilets, Toilet } from '@/lib/supabase';
+import { getOpenToilets, Toilet } from '@/lib/api';
 import { getCurrentLocation, LocationData, getToiletDistance } from '@/lib/location';
 import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
 import FeatureBadges from '@/components/FeatureBadges';
@@ -52,22 +52,14 @@ export default function OpenNowPage() {
   const loadToilets = async () => {
     try {
       setLoading(true);
-      console.log('🕐 === LOADING OPEN TOILETS WITH LAZY LOADING ===');
+      console.log('🕐 === LOADING OPEN TOILETS ===');
       
       setDistanceCalculationStatus('Loading open toilets...');
       
-      // ENHANCED: Use getOpenToilets with lazy loading
-      const data = await getOpenToilets(
-        userLocation || undefined,
-        (updatedToilets) => {
-          // Progressive update callback
-          setToilets([...updatedToilets]);
-          const googleCount = updatedToilets.filter(t => t.isGoogleDistance).length;
-          setDistanceCalculationStatus(`Calculated ${googleCount}/${updatedToilets.length} accurate distances`);
-        }
-      );
+      // Use getOpenToilets from API
+      const data = await getOpenToilets();
       
-      console.log(`🕐 Loaded ${data.length} open toilets with lazy loading`);
+      console.log(`🕐 Loaded ${data.length} open toilets`);
       setToilets(data);
       setDistanceCalculationStatus('');
     } catch (error) {
@@ -79,7 +71,7 @@ export default function OpenNowPage() {
     }
   };
 
-  // ENHANCED: Get highlights like Top Rated page
+  // Get highlights like Top Rated page
   const getHighlights = (toilet: Toilet): string[] => {
     const highlights = [];
     if (toilet.rating && toilet.rating >= 4.5) highlights.push('Excellent');
@@ -90,7 +82,7 @@ export default function OpenNowPage() {
     return highlights.slice(0, 3);
   };
 
-  // ENHANCED: Get badge color like Top Rated page
+  // Get badge color like Top Rated page
   const getBadgeColor = (rating: number | null) => {
     if (!rating) return '#666';
     if (rating >= 4.8) return '#E74C3C'; // VIP
@@ -107,7 +99,7 @@ export default function OpenNowPage() {
     return 'Quality';
   };
 
-  // ENHANCED: Use Google API distance
+  // Use distance calculation
   const getDistance = (toilet: Toilet): string => {
     return getToiletDistance(toilet, userLocation || undefined);
   };
@@ -127,7 +119,7 @@ export default function OpenNowPage() {
   const navigateToToiletDetail = (toilet: Toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.uuid }
+      params: { toiletId: toilet._id }
     });
   };
 
@@ -135,7 +127,7 @@ export default function OpenNowPage() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading open toilets with lazy distance calculation...</Text>
+          <Text style={styles.loadingText}>Loading open toilets...</Text>
           {distanceCalculationStatus && (
             <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
           )}
@@ -162,7 +154,7 @@ export default function OpenNowPage() {
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsCount}>{toilets.length} toilets currently open</Text>
         <Text style={styles.resultsSubtext}>
-          Real-time availability • {userLocation ? 'With accurate Google distances' : 'Enable location for distances'}
+          Real-time availability • {userLocation ? 'With distances' : 'Enable location for distances'}
         </Text>
         {distanceCalculationStatus && (
           <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
@@ -189,7 +181,7 @@ export default function OpenNowPage() {
         ) : (
           toilets.map((toilet, index) => (
             <TouchableOpacity 
-              key={toilet.uuid} 
+              key={toilet._id} 
               style={styles.toiletCard}
               onPress={() => navigateToToiletDetail(toilet)}
               activeOpacity={0.7}
@@ -262,7 +254,7 @@ export default function OpenNowPage() {
                   </Text>
                 </View>
 
-                {/* ENHANCED: Add highlights like Top Rated page */}
+                {/* Add highlights like Top Rated page */}
                 <View style={styles.highlightsContainer}>
                   {getHighlights(toilet).map((highlight, index) => (
                     <View key={index} style={styles.highlightTag}>
@@ -271,7 +263,7 @@ export default function OpenNowPage() {
                   ))}
                 </View>
 
-                {/* ENHANCED: Use FeatureBadges component like Top Rated page */}
+                {/* Use FeatureBadges component like Top Rated page */}
                 <FeatureBadges toilet={toilet} maxBadges={4} size="small" />
               </View>
             </TouchableOpacity>

@@ -1,11 +1,11 @@
-// FIXED TopRatedPage with LAZY LOADING Google Maps distance integration
+// FIXED TopRatedPage with proper imports and API integration
 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, Award } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { getTopRatedToilets, Toilet } from '@/lib/supabase';
+import { getTopRated, Toilet } from '@/lib/api';
 import { getCurrentLocation, LocationData, getToiletDistance } from '@/lib/location';
 import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
 import FeatureBadges from '@/components/FeatureBadges';
@@ -52,23 +52,14 @@ export default function TopRatedPage() {
   const loadToilets = async () => {
     try {
       setLoading(true);
-      console.log('⭐ === LOADING TOP RATED TOILETS WITH LAZY LOADING ===');
+      console.log('⭐ === LOADING TOP RATED TOILETS ===');
       
       setDistanceCalculationStatus('Loading top rated toilets...');
       
-      // ENHANCED: Use getTopRatedToilets with lazy loading
-      const data = await getTopRatedToilets(
-        15, 
-        userLocation || undefined,
-        (updatedToilets) => {
-          // Progressive update callback
-          setToilets([...updatedToilets]);
-          const googleCount = updatedToilets.filter(t => t.isGoogleDistance).length;
-          setDistanceCalculationStatus(`Calculated ${googleCount}/${updatedToilets.length} accurate distances`);
-        }
-      );
+      // Use getTopRated from API
+      const data = await getTopRated(15);
       
-      console.log(`⭐ Loaded ${data.length} top rated toilets with lazy loading`);
+      console.log(`⭐ Loaded ${data.length} top rated toilets`);
       setToilets(data);
       setDistanceCalculationStatus('');
     } catch (error) {
@@ -80,7 +71,7 @@ export default function TopRatedPage() {
     }
   };
 
-  // ENHANCED: Use Google API distance
+  // Use distance calculation
   const getDistance = (toilet: Toilet): string => {
     return getToiletDistance(toilet, userLocation || undefined);
   };
@@ -112,7 +103,7 @@ export default function TopRatedPage() {
   const navigateToToiletDetail = (toilet: Toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.uuid }
+      params: { toiletId: toilet._id }
     });
   };
 
@@ -120,7 +111,7 @@ export default function TopRatedPage() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading top rated toilets with lazy distance calculation...</Text>
+          <Text style={styles.loadingText}>Loading top rated toilets...</Text>
           {distanceCalculationStatus && (
             <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
           )}
@@ -147,7 +138,7 @@ export default function TopRatedPage() {
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsCount}>{toilets.length} highly rated toilets</Text>
         <Text style={styles.resultsSubtext}>
-          Sorted by rating • {userLocation ? 'With accurate Google distances' : 'Enable location for distances'}
+          Sorted by rating • {userLocation ? 'With distances' : 'Enable location for distances'}
         </Text>
         {distanceCalculationStatus && (
           <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
@@ -162,7 +153,7 @@ export default function TopRatedPage() {
       >
         {toilets.map((toilet, index) => (
           <TouchableOpacity 
-            key={toilet.uuid} 
+            key={toilet._id} 
             style={styles.toiletCard}
             onPress={() => navigateToToiletDetail(toilet)}
             activeOpacity={0.7}

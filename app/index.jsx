@@ -1,21 +1,48 @@
 // REDESIGNED HomeScreen - Modern, Minimalistic & Clean
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, Alert, RefreshControl, SafeAreaView } from 'react-native';
-import { Search, MapPin, Star, Clock, RefreshCw, Navigation, Share, Filter, ChevronRight, User } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+  RefreshControl,
+  SafeAreaView,
+} from 'react-native';
+import {
+  Search,
+  MapPin,
+  Star,
+  Clock,
+  RefreshCw,
+  Navigation,
+  Share,
+  Filter,
+  ChevronRight,
+  User,
+} from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import { getAllToilets, getTopRated, testConnection, searchForToilets } from '@/lib/mongodb';
-import { getCurrentLocation, getToiletDistance } from '@/lib/location';
-import { globalDistanceCache } from '@/lib/globalDistanceCache';
-import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
-import { getLocationDisplayName } from '@/lib/addressParser';
-import { recentToiletCache } from '@/lib/recentToiletCache';
-import FeatureBadges from '@/components/FeatureBadges';
-import FilterModal, { defaultFilters } from '@/components/FilterModal';
-import { applyFilters, getFilterSummary, getActiveFilterCount } from '@/lib/filtering';
-import ShareModal from '@/components/ShareModal';
-import QuickActions from '@/components/QuickActions';
-import SearchSection from '@/components/SearchSection';
-import ToiletList from '@/components/ToiletList';
+import {
+  getAllToilets,
+  getTopRated,
+  testConnection,
+  searchForToilets,
+} from '../lib/mockApi';
+
+import { getCurrentLocation, getToiletDistance } from '../lib/location';
+import { globalDistanceCache } from '../lib/globalDistanceCache';
+
+import { recentToiletCache } from '../lib/recentToiletCache';
+
+import FilterModal, { defaultFilters } from '../components/FilterModal';
+import { applyFilters, getActiveFilterCount } from '../lib/filtering';
+import ShareModal from '../components/ShareModal';
+import QuickActions from '../components/QuickActions';
+import SearchSection from '../components/SearchSection';
+import ToiletList from '../components/ToiletList';
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,16 +80,22 @@ export default function HomeScreen() {
   const initializeApp = async () => {
     await getUserLocation();
     await loadToilets();
-    
+
     recentToiletCache.subscribe((recentToilets) => {
-      const viewedToilets = recentToilets.filter(toilet => toilet.viewCount > 0);
+      const viewedToilets = recentToilets.filter(
+        (toilet) => toilet.viewCount > 0
+      );
       setRecentToilets(viewedToilets);
     });
   };
 
   const applyFiltersToToilets = async () => {
     try {
-      const filtered = applyFilters(toilets, currentFilters, userLocation || undefined);
+      const filtered = applyFilters(
+        toilets,
+        currentFilters,
+        userLocation || undefined
+      );
       setFilteredToilets(filtered);
       setSearchResults([]);
     } catch (error) {
@@ -79,11 +112,13 @@ export default function HomeScreen() {
       if (location) {
         setUserLocation(location);
         console.log('✅ Got user location for Home Screen:', location);
-        
+
         setGlobalCacheStatus('Initializing global distance cache...');
         await globalDistanceCache.initializeCache(location);
-        setGlobalCacheStatus(`Global cache loaded with ${globalDistanceCache.getCacheSize()} distances`);
-        
+        setGlobalCacheStatus(
+          `Global cache loaded with ${globalDistanceCache.getCacheSize()} distances`
+        );
+
         globalDistanceCache.subscribe((cache) => {
           setGlobalCacheStatus(`Global cache: ${cache.size} distances loaded`);
           if (toilets.length > 0) {
@@ -93,12 +128,11 @@ export default function HomeScreen() {
             setTopRatedToilets([...topRatedToilets]);
           }
         });
-        
       } else {
         console.log('⚠️ Could not get user location, using default');
         setUserLocation({
           latitude: 12.9716,
-          longitude: 77.5946
+          longitude: 77.5946,
         });
         setUserLocationAddress('Chennai, Tamil Nadu');
       }
@@ -106,7 +140,7 @@ export default function HomeScreen() {
       console.error('❌ Error getting location for Home Screen:', error);
       setUserLocation({
         latitude: 12.9716,
-        longitude: 77.5946
+        longitude: 77.5946,
       });
       setUserLocationAddress('Chennai, Tamil Nadu');
     } finally {
@@ -123,13 +157,20 @@ export default function HomeScreen() {
     try {
       console.log('🔍 === PERFORMING SEARCH WITH GLOBAL CACHE ===');
       console.log(`Query: "${searchQuery}"`);
-      
-      const results = await searchForToilets(searchQuery, userLocation || undefined);
+
+      const results = await searchForToilets(
+        searchQuery,
+        userLocation || undefined
+      );
       console.log(`📊 Search returned ${results.length} results`);
-      
-      const filtered = applyFilters(results, currentFilters, userLocation || undefined);
+
+      const filtered = applyFilters(
+        results,
+        currentFilters,
+        userLocation || undefined
+      );
       setSearchResults(filtered);
-      
+
       console.log(`✅ Search complete: ${filtered.length} filtered results`);
     } catch (error) {
       console.error('❌ Error searching toilets:', error);
@@ -142,7 +183,7 @@ export default function HomeScreen() {
       setLoading(true);
       setError(null);
       setConnectionStatus('Testing connection...');
-      
+
       const connectionResult = await testConnection();
       if (!connectionResult.success) {
         setConnectionStatus('Connection failed');
@@ -150,31 +191,36 @@ export default function HomeScreen() {
         console.error('Connection details:', connectionResult.details);
         return;
       }
-      
+
       setConnectionStatus('Loading toilets...');
-      
+
       console.log('🗺️ === LOADING ALL TOILETS ===');
       const allToilets = await getAllToilets(userLocation || undefined);
-      
+
       console.log(`📊 Loaded ${allToilets.length} toilets`);
       setToilets(allToilets);
-      
+
       console.log('⭐ === LOADING TOP RATED TOILETS ===');
       const topRated = await getTopRated(5, userLocation || undefined);
-      
+
       console.log(`⭐ Loaded ${topRated.length} top rated toilets`);
       setTopRatedToilets(topRated);
-      
+
       if (allToilets.length === 0) {
         setConnectionStatus('No toilets found');
-        setError('The database appears to be empty. Please check if data has been imported.');
+        setError(
+          'The database appears to be empty. Please check if data has been imported.'
+        );
       } else {
         setConnectionStatus(`Connected`);
       }
-      
-      const filtered = applyFilters(allToilets, currentFilters, userLocation || undefined);
+
+      const filtered = applyFilters(
+        allToilets,
+        currentFilters,
+        userLocation || undefined
+      );
       setFilteredToilets(filtered);
-      
     } catch (error) {
       console.error('❌ Error loading toilets:', error);
       setConnectionStatus('Error loading data');
@@ -204,7 +250,7 @@ export default function HomeScreen() {
     recentToiletCache.addRecentView(toilet);
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.uuid || toilet._id }
+      params: { toiletId: toilet.uuid || toilet._id },
     });
   };
 
@@ -259,8 +305,8 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView 
-        style={styles.container} 
+      <ScrollView
+        style={styles.container}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -280,8 +326,8 @@ export default function HomeScreen() {
                 </Text>
               </View>
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.profileButton}
               onPress={() => router.push('/profile')}
             >
@@ -290,11 +336,11 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.headerContent}>
             <Text style={styles.title}>Namma Loo</Text>
             <Text style={styles.subtitle}>Find clean toilets nearby</Text>
-            
+
             {userLocation && (
               <View style={styles.statusIndicator}>
                 <View style={styles.statusDot} />

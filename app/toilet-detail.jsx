@@ -20,8 +20,8 @@ import {
   getReviewsForToilet,
   createReview,
   createReport,
-  createOrGetAnonymousUser,
-} from '@/lib/supabase';
+  createAnonymousUser,
+} from '@/lib/api';
 import {
   getCurrentLocation,
   getToiletDistance,

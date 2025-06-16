@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image,
 import { Search, MapPin, Star, Clock, RefreshCw, Navigation, Share, Filter, ChevronRight, User } from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import { getToilets, getTopRatedToilets, testConnection, searchToilets } from '@/lib/supabase';
+import { getAllToilets, getTopRated, testConnection, searchForToilets } from '@/lib/mongodb';
 import { getCurrentLocation, getToiletDistance } from '@/lib/location';
 import { globalDistanceCache } from '@/lib/globalDistanceCache';
 import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
@@ -124,7 +124,7 @@ export default function HomeScreen() {
       console.log('🔍 === PERFORMING SEARCH WITH GLOBAL CACHE ===');
       console.log(`Query: "${searchQuery}"`);
       
-      const results = await searchToilets(searchQuery, userLocation || undefined);
+      const results = await searchForToilets(searchQuery, userLocation || undefined);
       console.log(`📊 Search returned ${results.length} results`);
       
       const filtered = applyFilters(results, currentFilters, userLocation || undefined);
@@ -154,13 +154,13 @@ export default function HomeScreen() {
       setConnectionStatus('Loading toilets...');
       
       console.log('🗺️ === LOADING ALL TOILETS ===');
-      const allToilets = await getToilets(userLocation || undefined);
+      const allToilets = await getAllToilets(userLocation || undefined);
       
       console.log(`📊 Loaded ${allToilets.length} toilets`);
       setToilets(allToilets);
       
       console.log('⭐ === LOADING TOP RATED TOILETS ===');
-      const topRated = await getTopRatedToilets(5, userLocation || undefined);
+      const topRated = await getTopRated(5, userLocation || undefined);
       
       console.log(`⭐ Loaded ${topRated.length} top rated toilets`);
       setTopRatedToilets(topRated);
@@ -200,11 +200,11 @@ export default function HomeScreen() {
   };
 
   const navigateToToiletDetail = (toilet) => {
-    console.log('🚀 Navigating to toilet detail:', toilet.uuid);
+    console.log('🚀 Navigating to toilet detail:', toilet.uuid || toilet._id);
     recentToiletCache.addRecentView(toilet);
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.uuid }
+      params: { toiletId: toilet.uuid || toilet._id }
     });
   };
 

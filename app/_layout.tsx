@@ -11,10 +11,8 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="toilet-detail" />
-        <Stack.Screen name="near-me" />
-        <Stack.Screen name="top-rated" />
-        <Stack.Screen name="open-now" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

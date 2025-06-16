@@ -1,5 +1,3 @@
-// FIXED OpenNowPage with proper imports and API integration
-
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, CircleCheck as CheckCircle } from 'lucide-react-native';
@@ -15,7 +13,6 @@ export default function OpenNowPage() {
   const [toilets, setToilets] = useState<Toilet[]>([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
-  const [distanceCalculationStatus, setDistanceCalculationStatus] = useState<string>('');
 
   useEffect(() => {
     initializePage();
@@ -54,24 +51,18 @@ export default function OpenNowPage() {
       setLoading(true);
       console.log('🕐 === LOADING OPEN TOILETS ===');
       
-      setDistanceCalculationStatus('Loading open toilets...');
-      
-      // Use getOpenToilets from API
-      const data = await getOpenToilets();
+      const data = await getOpenToilets(userLocation || undefined);
       
       console.log(`🕐 Loaded ${data.length} open toilets`);
       setToilets(data);
-      setDistanceCalculationStatus('');
     } catch (error) {
       console.error('❌ Error loading open toilets:', error);
       Alert.alert('Error', 'Failed to load toilets. Please try again.');
-      setDistanceCalculationStatus('');
     } finally {
       setLoading(false);
     }
   };
 
-  // Get highlights like Top Rated page
   const getHighlights = (toilet: Toilet): string[] => {
     const highlights = [];
     if (toilet.rating && toilet.rating >= 4.5) highlights.push('Excellent');
@@ -82,7 +73,6 @@ export default function OpenNowPage() {
     return highlights.slice(0, 3);
   };
 
-  // Get badge color like Top Rated page
   const getBadgeColor = (rating: number | null) => {
     if (!rating) return '#666';
     if (rating >= 4.8) return '#E74C3C'; // VIP
@@ -99,27 +89,20 @@ export default function OpenNowPage() {
     return 'Quality';
   };
 
-  // Use distance calculation
   const getDistance = (toilet: Toilet): string => {
     return getToiletDistance(toilet, userLocation || undefined);
-  };
-
-  const getTimeColor = (workingHours: string | null) => {
-    if (!workingHours) return '#34C759';
-    if (workingHours.includes('24') || workingHours.includes('Always')) return '#34C759';
-    return '#34C759'; // Assume open for demo
   };
 
   const getOpenStatus = (toilet: Toilet) => {
     if (!toilet.working_hours) return 'Open 24/7';
     if (toilet.working_hours.includes('24')) return 'Open 24/7';
-    return formatWorkingHours(toilet.working_hours); // Use proper formatting
+    return formatWorkingHours(toilet.working_hours);
   };
 
   const navigateToToiletDetail = (toilet: Toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet._id }
+      params: { toiletId: toilet.uuid }
     });
   };
 
@@ -128,9 +111,6 @@ export default function OpenNowPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading open toilets...</Text>
-          {distanceCalculationStatus && (
-            <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
-          )}
         </View>
       </SafeAreaView>
     );
@@ -154,11 +134,8 @@ export default function OpenNowPage() {
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsCount}>{toilets.length} toilets currently open</Text>
         <Text style={styles.resultsSubtext}>
-          Real-time availability • {userLocation ? 'With distances' : 'Enable location for distances'}
+          Real-time availability
         </Text>
-        {distanceCalculationStatus && (
-          <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
-        )}
       </View>
 
       {/* Toilet List */}
@@ -181,7 +158,7 @@ export default function OpenNowPage() {
         ) : (
           toilets.map((toilet, index) => (
             <TouchableOpacity 
-              key={toilet._id} 
+              key={toilet.uuid} 
               style={styles.toiletCard}
               onPress={() => navigateToToiletDetail(toilet)}
               activeOpacity={0.7}
@@ -190,12 +167,6 @@ export default function OpenNowPage() {
                 <CheckCircle size={14} color="#34C759" fill="#34C759" />
                 <Text style={styles.openBadgeText}>OPEN</Text>
               </View>
-              
-              {toilet.isGoogleDistance && (
-                <View style={styles.googleBadge}>
-                  <Text style={styles.googleBadgeText}>📍</Text>
-                </View>
-              )}
               
               <Image 
                 source={{ 
@@ -217,9 +188,6 @@ export default function OpenNowPage() {
                   <View style={styles.distanceContainer}>
                     <MapPin size={12} color="#007AFF" />
                     <Text style={styles.distanceText}>{getDistance(toilet)}</Text>
-                    {toilet.isGoogleDistance && (
-                      <Text style={styles.googleIndicator}>📍</Text>
-                    )}
                   </View>
                 </View>
 
@@ -238,15 +206,6 @@ export default function OpenNowPage() {
                   </View>
                 </View>
 
-                {toilet.durationText && (
-                  <View style={styles.durationRow}>
-                    <Clock size={12} color="#666" />
-                    <Text style={styles.durationText}>
-                      {toilet.durationText} drive
-                    </Text>
-                  </View>
-                )}
-
                 <View style={styles.hoursRow}>
                   <Clock size={12} color="#666" />
                   <Text style={styles.hoursText}>
@@ -254,7 +213,6 @@ export default function OpenNowPage() {
                   </Text>
                 </View>
 
-                {/* Add highlights like Top Rated page */}
                 <View style={styles.highlightsContainer}>
                   {getHighlights(toilet).map((highlight, index) => (
                     <View key={index} style={styles.highlightTag}>
@@ -263,7 +221,6 @@ export default function OpenNowPage() {
                   ))}
                 </View>
 
-                {/* Use FeatureBadges component like Top Rated page */}
                 <FeatureBadges toilet={toilet} maxBadges={4} size="small" />
               </View>
             </TouchableOpacity>
@@ -288,13 +245,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 10,
-  },
-  distanceStatusText: {
-    fontSize: 12,
-    color: '#007AFF',
-    textAlign: 'center',
-    fontStyle: 'italic',
   },
   header: {
     flexDirection: 'row',
@@ -391,19 +341,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: 4,
   },
-  googleBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.95)',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 8,
-    zIndex: 2,
-  },
-  googleBadgeText: {
-    fontSize: 12,
-  },
   toiletImage: {
     width: '100%',
     height: 160,
@@ -453,10 +390,6 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     marginLeft: 4,
   },
-  googleIndicator: {
-    fontSize: 10,
-    marginLeft: 4,
-  },
   ratingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -490,17 +423,6 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '500',
-  },
-  durationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  durationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 6,
     fontWeight: '500',
   },
   hoursRow: {

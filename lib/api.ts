@@ -1,18 +1,21 @@
-// API configuration and data fetching
-const MONGODB_API_URL = 'http://localhost:3001/api'; // Backend API URL
+// API utilities for MongoDB backend
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export interface Toilet {
   _id: string;
+  uuid: string;
   name: string;
+  type: string;
   address: string;
   city: string;
   state: string;
   latitude: number;
   longitude: number;
-  rating: number;
-  reviews: number;
-  image_url?: string;
-  working_hours?: string;
+  rating: number | null;
+  reviews: number | null;
+  image_url: string | null;
+  working_hours: string | null;
+  business_status: string;
   is_paid: string;
   wheelchair: string;
   gender: string;
@@ -22,218 +25,287 @@ export interface Toilet {
   napkin_vendor: string;
   distance?: number;
   distanceText?: string;
+  durationText?: string;
+  durationMinutes?: number;
+  isGoogleDistance?: boolean;
 }
 
-// Mock data for fallback
-const mockToilets: Toilet[] = [
-  {
-    _id: '1',
-    name: 'Phoenix MarketCity Mall Restroom',
-    address: 'Whitefield Main Road, Mahadevapura',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    latitude: 12.9698,
-    longitude: 77.6991,
-    rating: 4.5,
-    reviews: 127,
-    image_url: 'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '10:00 AM - 10:00 PM',
-    is_paid: 'No',
-    wheelchair: 'Yes',
-    gender: 'Unisex',
-    baby: 'Yes',
-    shower: 'No',
-    westernorindian: 'Western',
-    napkin_vendor: 'No'
-  },
-  {
-    _id: '2',
-    name: 'Cubbon Park Public Toilet',
-    address: 'Cubbon Park, Kasturba Road',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    latitude: 12.9716,
-    longitude: 77.5946,
-    rating: 4.2,
-    reviews: 89,
-    image_url: 'https://images.pexels.com/photos/6585756/pexels-photo-6585756.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '6:00 AM - 8:00 PM',
-    is_paid: 'No',
-    wheelchair: 'Yes',
-    gender: 'Separate',
-    baby: 'Yes',
-    shower: 'No',
-    westernorindian: 'Both',
-    napkin_vendor: 'No'
-  },
-  {
-    _id: '3',
-    name: 'Bangalore Railway Station Restroom',
-    address: 'Kempegowda Railway Station, Gubbi Thotadappa Road',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    latitude: 12.9767,
-    longitude: 77.5993,
-    rating: 3.8,
-    reviews: 234,
-    image_url: 'https://images.pexels.com/photos/6585758/pexels-photo-6585758.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '24 Hours',
-    is_paid: 'Yes',
-    wheelchair: 'Yes',
-    gender: 'Separate',
-    baby: 'No',
-    shower: 'Yes',
-    westernorindian: 'Both',
-    napkin_vendor: 'Yes'
-  },
-  {
-    _id: '4',
-    name: 'UB City Mall Premium Restroom',
-    address: 'UB City Mall, Vittal Mallya Road',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    latitude: 12.9719,
-    longitude: 77.6197,
-    rating: 4.8,
-    reviews: 156,
-    image_url: 'https://images.pexels.com/photos/6585759/pexels-photo-6585759.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '10:00 AM - 11:00 PM',
-    is_paid: 'No',
-    wheelchair: 'Yes',
-    gender: 'Unisex',
-    baby: 'Yes',
-    shower: 'No',
-    westernorindian: 'Western',
-    napkin_vendor: 'No'
-  },
-  {
-    _id: '5',
-    name: 'Lalbagh Botanical Garden Facility',
-    address: 'Lalbagh Main Gate, Mavalli',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    latitude: 12.9507,
-    longitude: 77.5848,
-    rating: 4.1,
-    reviews: 67,
-    image_url: 'https://images.pexels.com/photos/6585760/pexels-photo-6585760.jpeg?auto=compress&cs=tinysrgb&w=400',
-    working_hours: '6:00 AM - 6:00 PM',
-    is_paid: 'No',
-    wheelchair: 'No',
-    gender: 'Separate',
-    baby: 'No',
-    shower: 'No',
-    westernorindian: 'Indian',
-    napkin_vendor: 'No'
-  }
-];
+export interface Review {
+  _id: string;
+  toilet_id: string;
+  user_name: string;
+  review_text: string;
+  rating: number;
+  created_at: string;
+}
 
-// Fetch toilets from backend or use mock data
-export const fetchToilets = async (): Promise<Toilet[]> => {
+// Test API connection
+export const testConnection = async (): Promise<{ success: boolean; error?: string; details?: any }> => {
   try {
-    console.log('Attempting to fetch from backend...');
-    const response = await fetch(`${MONGODB_API_URL}/toilets`);
+    console.log('🔗 Testing API connection...');
+    const response = await fetch(`${API_BASE_URL}/health`);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.json();
-    console.log('Successfully fetched from backend:', data.length, 'toilets');
+    console.log('✅ API connection successful');
+    
+    return {
+      success: true,
+      details: data
+    };
+  } catch (error: any) {
+    console.error('❌ API connection failed:', error);
+    return {
+      success: false,
+      error: error.message,
+      details: { url: API_BASE_URL }
+    };
+  }
+};
+
+// Get all toilets
+export const getToilets = async (userLocation?: { latitude: number; longitude: number }): Promise<Toilet[]> => {
+  try {
+    console.log('🚻 Fetching toilets from API...');
+    
+    let url = `${API_BASE_URL}/toilets`;
+    if (userLocation) {
+      url += `?lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
+    }
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch toilets: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`✅ Fetched ${data.length} toilets`);
+    
     return data;
   } catch (error) {
-    console.warn('Backend not available, using mock data:', error);
-    return mockToilets;
+    console.error('❌ Error fetching toilets:', error);
+    return [];
   }
 };
 
-// Fetch toilet by ID
-export const fetchToiletById = async (id: string): Promise<Toilet | null> => {
+// Get toilet by ID
+export const getToiletById = async (id: string, userLocation?: { latitude: number; longitude: number }): Promise<Toilet | null> => {
   try {
-    const response = await fetch(`${MONGODB_API_URL}/toilets/${id}`);
+    console.log('🚻 Fetching toilet by ID:', id);
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let url = `${API_BASE_URL}/toilets/${id}`;
+    if (userLocation) {
+      url += `?lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
     }
     
-    return await response.json();
-  } catch (error) {
-    console.warn('Backend not available, using mock data');
-    return mockToilets.find(toilet => toilet._id === id) || null;
-  }
-};
-
-// Search toilets
-export const searchToilets = async (query: string): Promise<Toilet[]> => {
-  try {
-    const response = await fetch(`${MONGODB_API_URL}/toilets/search?q=${encodeURIComponent(query)}`);
+    const response = await fetch(url);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch toilet: ${response.statusText}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log('✅ Fetched toilet:', data.name);
+    
+    return data;
   } catch (error) {
-    console.warn('Backend not available, using mock search');
-    return mockToilets.filter(toilet => 
-      toilet.name.toLowerCase().includes(query.toLowerCase()) ||
-      toilet.address.toLowerCase().includes(query.toLowerCase()) ||
-      toilet.city.toLowerCase().includes(query.toLowerCase())
-    );
+    console.error('❌ Error fetching toilet:', error);
+    return null;
   }
 };
 
 // Get top rated toilets
-export const getTopRatedToilets = async (limit: number = 5): Promise<Toilet[]> => {
+export const getTopRatedToilets = async (
+  limit: number = 10,
+  userLocation?: { latitude: number; longitude: number }
+): Promise<Toilet[]> => {
   try {
-    const response = await fetch(`${MONGODB_API_URL}/toilets/top-rated?limit=${limit}`);
+    console.log('⭐ Fetching top rated toilets...');
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let url = `${API_BASE_URL}/toilets/top-rated?limit=${limit}`;
+    if (userLocation) {
+      url += `&lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
     }
     
-    return await response.json();
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch top rated toilets: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`✅ Fetched ${data.length} top rated toilets`);
+    
+    return data;
   } catch (error) {
-    console.warn('Backend not available, using mock data');
-    return mockToilets
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, limit);
+    console.error('❌ Error fetching top rated toilets:', error);
+    return [];
   }
 };
 
-// Get nearby toilets
-export const getNearbyToilets = async (latitude: number, longitude: number, radius: number = 5): Promise<Toilet[]> => {
+// Get open toilets
+export const getOpenToilets = async (
+  userLocation?: { latitude: number; longitude: number }
+): Promise<Toilet[]> => {
   try {
-    const response = await fetch(`${MONGODB_API_URL}/toilets/nearby?lat=${latitude}&lng=${longitude}&radius=${radius}`);
+    console.log('🕐 Fetching open toilets...');
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let url = `${API_BASE_URL}/toilets/open`;
+    if (userLocation) {
+      url += `?lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
     }
     
-    return await response.json();
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch open toilets: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`✅ Fetched ${data.length} open toilets`);
+    
+    return data;
   } catch (error) {
-    console.warn('Backend not available, using mock data');
-    // Simple distance calculation for mock data
-    return mockToilets.map(toilet => {
-      const distance = calculateDistance(latitude, longitude, toilet.latitude, toilet.longitude);
-      return {
-        ...toilet,
-        distance,
-        distanceText: `${distance.toFixed(1)} km`
-      };
-    }).filter(toilet => toilet.distance <= radius)
-      .sort((a, b) => a.distance - b.distance);
+    console.error('❌ Error fetching open toilets:', error);
+    return [];
   }
 };
 
-// Simple distance calculation (Haversine formula)
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+// Search toilets
+export const searchToilets = async (
+  query: string,
+  userLocation?: { latitude: number; longitude: number }
+): Promise<Toilet[]> => {
+  try {
+    console.log('🔍 Searching toilets:', query);
+    
+    let url = `${API_BASE_URL}/toilets/search?q=${encodeURIComponent(query)}`;
+    if (userLocation) {
+      url += `&lat=${userLocation.latitude}&lng=${userLocation.longitude}`;
+    }
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to search toilets: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`✅ Found ${data.length} toilets matching "${query}"`);
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Error searching toilets:', error);
+    return [];
+  }
+};
+
+// Get reviews for a toilet
+export const getReviewsForToilet = async (toiletId: string): Promise<Review[]> => {
+  try {
+    console.log('💬 Fetching reviews for toilet:', toiletId);
+    
+    const response = await fetch(`${API_BASE_URL}/toilets/${toiletId}/reviews`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch reviews: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log(`✅ Fetched ${data.length} reviews`);
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Error fetching reviews:', error);
+    return [];
+  }
+};
+
+// Create a review
+export const createReview = async (
+  toiletId: string,
+  userName: string,
+  reviewText: string,
+  rating: number
+): Promise<Review | null> => {
+  try {
+    console.log('📝 Creating review for toilet:', toiletId);
+    
+    const response = await fetch(`${API_BASE_URL}/toilets/${toiletId}/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_name: userName,
+        review_text: reviewText,
+        rating,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create review: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Review created successfully');
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Error creating review:', error);
+    return null;
+  }
+};
+
+// Create a report
+export const createReport = async (
+  toiletId: string,
+  userName: string,
+  issueText: string
+): Promise<any> => {
+  try {
+    console.log('📋 Creating report for toilet:', toiletId);
+    
+    const response = await fetch(`${API_BASE_URL}/toilets/${toiletId}/reports`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_name: userName,
+        issue_text: issueText,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create report: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log('✅ Report created successfully');
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Error creating report:', error);
+    return null;
+  }
+};
+
+// Create anonymous user (for compatibility)
+export const createOrGetAnonymousUser = async (): Promise<{ id: string; name: string } | null> => {
+  // Generate a random anonymous user
+  const anonymousId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const anonymousName = `Anonymous User ${Math.floor(Math.random() * 1000)}`;
+  
+  return {
+    id: anonymousId,
+    name: anonymousName
+  };
 };

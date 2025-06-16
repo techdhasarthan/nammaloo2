@@ -1,11 +1,9 @@
-// FIXED TopRatedPage with proper imports and API integration
-
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, Award } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { getTopRated, Toilet } from '@/lib/api';
+import { getTopRatedToilets, Toilet } from '@/lib/api';
 import { getCurrentLocation, LocationData, getToiletDistance } from '@/lib/location';
 import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
 import FeatureBadges from '@/components/FeatureBadges';
@@ -15,7 +13,6 @@ export default function TopRatedPage() {
   const [toilets, setToilets] = useState<Toilet[]>([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
-  const [distanceCalculationStatus, setDistanceCalculationStatus] = useState<string>('');
 
   useEffect(() => {
     initializePage();
@@ -54,24 +51,18 @@ export default function TopRatedPage() {
       setLoading(true);
       console.log('⭐ === LOADING TOP RATED TOILETS ===');
       
-      setDistanceCalculationStatus('Loading top rated toilets...');
-      
-      // Use getTopRated from API
-      const data = await getTopRated(15);
+      const data = await getTopRatedToilets(15, userLocation || undefined);
       
       console.log(`⭐ Loaded ${data.length} top rated toilets`);
       setToilets(data);
-      setDistanceCalculationStatus('');
     } catch (error) {
       console.error('❌ Error loading top rated toilets:', error);
       Alert.alert('Error', 'Failed to load toilets. Please try again.');
-      setDistanceCalculationStatus('');
     } finally {
       setLoading(false);
     }
   };
 
-  // Use distance calculation
   const getDistance = (toilet: Toilet): string => {
     return getToiletDistance(toilet, userLocation || undefined);
   };
@@ -103,7 +94,7 @@ export default function TopRatedPage() {
   const navigateToToiletDetail = (toilet: Toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet._id }
+      params: { toiletId: toilet.uuid }
     });
   };
 
@@ -112,9 +103,6 @@ export default function TopRatedPage() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading top rated toilets...</Text>
-          {distanceCalculationStatus && (
-            <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
-          )}
         </View>
       </SafeAreaView>
     );
@@ -138,11 +126,8 @@ export default function TopRatedPage() {
       <View style={styles.resultsHeader}>
         <Text style={styles.resultsCount}>{toilets.length} highly rated toilets</Text>
         <Text style={styles.resultsSubtext}>
-          Sorted by rating • {userLocation ? 'With distances' : 'Enable location for distances'}
+          Sorted by rating
         </Text>
-        {distanceCalculationStatus && (
-          <Text style={styles.distanceStatusText}>{distanceCalculationStatus}</Text>
-        )}
       </View>
 
       {/* Toilet List */}
@@ -153,7 +138,7 @@ export default function TopRatedPage() {
       >
         {toilets.map((toilet, index) => (
           <TouchableOpacity 
-            key={toilet._id} 
+            key={toilet.uuid} 
             style={styles.toiletCard}
             onPress={() => navigateToToiletDetail(toilet)}
             activeOpacity={0.7}
@@ -162,12 +147,6 @@ export default function TopRatedPage() {
               <View style={styles.topBadge}>
                 <Award size={16} color="#FFD700" fill="#FFD700" />
                 <Text style={styles.topBadgeText}>#1 Rated</Text>
-              </View>
-            )}
-            
-            {toilet.isGoogleDistance && (
-              <View style={styles.googleBadge}>
-                <Text style={styles.googleBadgeText}>📍</Text>
               </View>
             )}
             
@@ -191,9 +170,6 @@ export default function TopRatedPage() {
                 <View style={styles.distanceContainer}>
                   <MapPin size={12} color="#007AFF" />
                   <Text style={styles.distanceText}>{getDistance(toilet)}</Text>
-                  {toilet.isGoogleDistance && (
-                    <Text style={styles.googleIndicator}>📍</Text>
-                  )}
                 </View>
               </View>
 
@@ -211,15 +187,6 @@ export default function TopRatedPage() {
                   </Text>
                 </View>
               </View>
-
-              {toilet.durationText && (
-                <View style={styles.durationRow}>
-                  <Clock size={12} color="#666" />
-                  <Text style={styles.durationText}>
-                    {toilet.durationText} drive
-                  </Text>
-                </View>
-              )}
 
               <View style={styles.hoursRow}>
                 <Clock size={12} color="#666" />
@@ -259,13 +226,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 10,
-  },
-  distanceStatusText: {
-    fontSize: 12,
-    color: '#007AFF',
-    textAlign: 'center',
-    fontStyle: 'italic',
   },
   header: {
     flexDirection: 'row',
@@ -344,19 +304,6 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     marginLeft: 4,
   },
-  googleBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.95)',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 8,
-    zIndex: 2,
-  },
-  googleBadgeText: {
-    fontSize: 12,
-  },
   toiletImage: {
     width: '100%',
     height: 160,
@@ -406,10 +353,6 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     marginLeft: 4,
   },
-  googleIndicator: {
-    fontSize: 10,
-    marginLeft: 4,
-  },
   ratingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -443,17 +386,6 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '500',
-  },
-  durationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  durationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 6,
     fontWeight: '500',
   },
   hoursRow: {

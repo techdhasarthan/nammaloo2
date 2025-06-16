@@ -1,13 +1,11 @@
-// Complete Near Me Page with Google Distance API Integration - FIXED IMPORTS
-
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, RefreshCw, Navigation, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Star, MapPin, Clock, RefreshCw, Navigation } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { getNearby, Toilet } from '@/lib/api';
+import { getToilets, Toilet } from '@/lib/api';
 import { formatWorkingHours, getStatusColor, getStatusText } from '@/lib/workingHours';
-import { getCurrentLocation, LocationData, testGoogleDistanceAPI, formatDistance } from '@/lib/location';
+import { getCurrentLocation, LocationData, formatDistance } from '@/lib/location';
 import FeatureBadges from '@/components/FeatureBadges';
 
 export default function NearMePage() {
@@ -17,8 +15,6 @@ export default function NearMePage() {
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
   const [locationLoading, setLocationLoading] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [googleApiWorking, setGoogleApiWorking] = useState<boolean | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   useEffect(() => {
     initializePage();
@@ -32,24 +28,7 @@ export default function NearMePage() {
 
   const initializePage = async () => {
     console.log('🚀 === INITIALIZING NEAR ME PAGE ===');
-    
-    // Test Google API first
-    await testGoogleAPI();
-    
-    // Get user location
     await loadUserLocation();
-  };
-
-  const testGoogleAPI = async () => {
-    try {
-      console.log('🧪 Testing Google Distance API...');
-      await testGoogleDistanceAPI();
-      setGoogleApiWorking(true);
-      console.log('✅ Google API is working');
-    } catch (error) {
-      console.error('❌ Google API test failed:', error);
-      setGoogleApiWorking(false);
-    }
   };
 
   const loadUserLocation = async () => {
@@ -83,9 +62,8 @@ export default function NearMePage() {
   const loadNearbyToilets = async () => {
     try {
       setLoading(true);
-      console.log('🗺️ === LOADING TOILETS WITH GOOGLE DISTANCES ===');
+      console.log('🗺️ === LOADING NEARBY TOILETS ===');
       console.log('📍 User location:', userLocation);
-      console.log('🌐 Google API status:', googleApiWorking ? 'Working' : 'Failed');
       
       if (!userLocation) {
         console.log('⚠️ No user location - cannot load nearby toilets');
@@ -93,35 +71,11 @@ export default function NearMePage() {
         return;
       }
 
-      // Use getNearby function from API
-      const nearbyToilets = await getNearby({
-        latitude: userLocation.latitude,
-        longitude: userLocation.longitude,
-        radius: 5000, // 5km in meters
-        limit: 25
-      });
+      const nearbyToilets = await getToilets(userLocation);
       
       console.log('📊 Nearby toilets received:', nearbyToilets.length);
+      setToilets(nearbyToilets);
       
-      if (nearbyToilets.length === 0) {
-        console.log('⚠️ No toilets within 5km, trying 10km radius');
-        // Fallback: try 10km radius
-        const furtherToilets = await getNearby({
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          radius: 10000, // 10km in meters
-          limit: 15
-        });
-        setToilets(furtherToilets);
-        
-        if (furtherToilets.length === 0) {
-          console.log('⚠️ Still no toilets found within 10km');
-        }
-      } else {
-        setToilets(nearbyToilets);
-      }
-      
-      setLastUpdated(new Date());
     } catch (error) {
       console.error('❌ Error loading nearby toilets:', error);
       Alert.alert(
@@ -151,20 +105,18 @@ export default function NearMePage() {
   };
 
   const navigateToToiletDetail = (toilet: Toilet) => {
-    console.log('🚀 Navigating to toilet detail:', toilet._id);
+    console.log('🚀 Navigating to toilet detail:', toilet.uuid);
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet._id }
+      params: { toiletId: toilet.uuid }
     });
   };
 
   const getDistance = (toilet: Toilet): string => {
-    // Use distance text if available
     if (toilet.distanceText && toilet.distanceText !== 'Unknown') {
       return toilet.distanceText;
     }
     
-    // Fallback to calculated distance
     if (toilet.distance !== undefined && toilet.distance < 999) {
       return formatDistance(toilet.distance);
     }
@@ -172,39 +124,6 @@ export default function NearMePage() {
     return 'Distance unknown';
   };
 
-  const getDistanceColor = (toilet: Toilet): string => {
-    if (!toilet.distance || toilet.distance >= 999) return '#999';
-    if (toilet.distance <= 1) return '#34C759'; // Green for very close
-    if (toilet.distance <= 3) return '#FF9500'; // Orange for moderate
-    return '#007AFF'; // Blue for further
-  };
-
-  const getCleanlinessColor = (rating: number | null) => {
-    if (!rating) return '#999';
-    if (rating >= 4.5) return '#34C759';
-    if (rating >= 4.0) return '#30D158';
-    if (rating >= 3.5) return '#FF9500';
-    return '#FF3B30';
-  };
-
-  const getCleanlinessText = (rating: number | null) => {
-    if (!rating) return 'Not Rated';
-    if (rating >= 4.5) return 'Excellent';
-    if (rating >= 4.0) return 'Very Good';
-    if (rating >= 3.5) return 'Good';
-    return 'Fair';
-  };
-
-  const getTimeAgo = (date: Date): string => {
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    return `${Math.floor(diffInMinutes / 60)}h ago`;
-  };
-
-  // Loading state
   if (loading || locationLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -217,27 +136,9 @@ export default function NearMePage() {
           <Text style={styles.loadingSubtext}>
             {locationLoading 
               ? 'Please allow location access for accurate results'
-              : googleApiWorking 
-                ? 'Using Google Maps for accurate distances'
-                : 'Calculating distances...'
+              : 'Calculating distances...'
             }
           </Text>
-          
-          {googleApiWorking !== null && (
-            <View style={styles.apiStatusContainer}>
-              {googleApiWorking ? (
-                <View style={styles.apiStatus}>
-                  <CheckCircle size={16} color="#34C759" />
-                  <Text style={styles.apiStatusText}>Google Maps API Connected</Text>
-                </View>
-              ) : (
-                <View style={styles.apiStatus}>
-                  <AlertCircle size={16} color="#FF9500" />
-                  <Text style={styles.apiStatusTextWarning}>Using fallback distance calculation</Text>
-                </View>
-              )}
-            </View>
-          )}
         </View>
       </SafeAreaView>
     );
@@ -262,7 +163,6 @@ export default function NearMePage() {
           <RefreshCw 
             size={20} 
             color={loading ? "#ccc" : "#007AFF"} 
-            style={loading ? styles.spinning : undefined}
           />
         </TouchableOpacity>
       </View>
@@ -280,24 +180,10 @@ export default function NearMePage() {
         </View>
         <Text style={styles.resultsSubtext}>
           {userLocation 
-            ? `Within 5km • Sorted by distance • Updated ${getTimeAgo(lastUpdated)}`
+            ? `Sorted by distance`
             : locationError || 'Enable location to find nearby toilets'
           }
         </Text>
-        
-        {googleApiWorking !== null && userLocation && (
-          <View style={styles.apiIndicator}>
-            {googleApiWorking ? (
-              <Text style={styles.apiIndicatorText}>
-                📍 Using Google Maps for accurate distances
-              </Text>
-            ) : (
-              <Text style={styles.apiIndicatorTextWarning}>
-                ⚠️ Using approximate distances (Google API unavailable)
-              </Text>
-            )}
-          </View>
-        )}
       </View>
 
       {/* Content */}
@@ -307,7 +193,6 @@ export default function NearMePage() {
         contentContainerStyle={styles.scrollContent}
       >
         {!userLocation ? (
-          // Location Error State
           <View style={styles.emptyState}>
             <Navigation size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>Location Required</Text>
@@ -326,12 +211,11 @@ export default function NearMePage() {
             </TouchableOpacity>
           </View>
         ) : toilets.length === 0 ? (
-          // No Toilets Found State
           <View style={styles.emptyState}>
             <MapPin size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>No Nearby Toilets</Text>
             <Text style={styles.emptyStateText}>
-              No toilets found within 10km of your location. This might be due to:
+              No toilets found in your area. This might be due to:
               {'\n'}• Limited data in your area
               {'\n'}• Connectivity issues
               {'\n'}• Location accuracy
@@ -348,10 +232,9 @@ export default function NearMePage() {
             </TouchableOpacity>
           </View>
         ) : (
-          // Toilets List
           toilets.map((toilet, index) => (
             <TouchableOpacity 
-              key={toilet._id} 
+              key={toilet.uuid} 
               style={styles.toiletCard}
               onPress={() => navigateToToiletDetail(toilet)}
               activeOpacity={0.7}
@@ -359,12 +242,6 @@ export default function NearMePage() {
               {index === 0 && (
                 <View style={styles.closestBadge}>
                   <Text style={styles.closestBadgeText}>CLOSEST</Text>
-                </View>
-              )}
-              
-              {toilet.isGoogleDistance && (
-                <View style={styles.googleBadge}>
-                  <Text style={styles.googleBadgeText}>📍</Text>
                 </View>
               )}
               
@@ -380,22 +257,13 @@ export default function NearMePage() {
                   <Text style={styles.toiletName} numberOfLines={1}>
                     {toilet.name || 'Public Toilet'}
                   </Text>
-                  <View style={[styles.distanceContainer, { backgroundColor: `${getDistanceColor(toilet)}20` }]}>
-                    <MapPin size={12} color={getDistanceColor(toilet)} />
-                    <Text style={[styles.distanceText, { color: getDistanceColor(toilet) }]}>
+                  <View style={styles.distanceContainer}>
+                    <MapPin size={12} color="#007AFF" />
+                    <Text style={styles.distanceText}>
                       {getDistance(toilet)}
                     </Text>
                   </View>
                 </View>
-
-                {toilet.durationText && toilet.durationText !== 'Unknown' && (
-                  <View style={styles.durationRow}>
-                    <Clock size={12} color="#666" />
-                    <Text style={styles.durationText}>
-                      {toilet.durationText} drive
-                    </Text>
-                  </View>
-                )}
 
                 <View style={styles.ratingRow}>
                   <View style={styles.ratingContainer}>
@@ -419,14 +287,6 @@ export default function NearMePage() {
                   <Text style={styles.hoursText}>
                     {formatWorkingHours(toilet.working_hours)}
                   </Text>
-                </View>
-
-                <View style={styles.cleanlinessRow}>
-                  <Text style={styles.cleanlinessLabel}>Cleanliness:</Text>
-                  <Text style={[styles.cleanlinessValue, { color: getCleanlinessColor(toilet.rating) }]}>
-                    {getCleanlinessText(toilet.rating)}
-                  </Text>
-                  <Text style={styles.lastCleaned}>• Recently maintained</Text>
                 </View>
 
                 <FeatureBadges toilet={toilet} maxBadges={3} size="small" />
@@ -468,24 +328,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 20,
   },
-  apiStatusContainer: {
-    marginTop: 20,
-  },
-  apiStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  apiStatusText: {
-    fontSize: 12,
-    color: '#34C759',
-    fontWeight: '500',
-  },
-  apiStatusTextWarning: {
-    fontSize: 12,
-    color: '#FF9500',
-    fontWeight: '500',
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -511,9 +353,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#f0f8ff',
   },
-  spinning: {
-    transform: [{ rotate: '360deg' }],
-  },
   resultsHeader: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -536,20 +375,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 18,
-    marginBottom: 8,
-  },
-  apiIndicator: {
-    marginTop: 4,
-  },
-  apiIndicatorText: {
-    fontSize: 12,
-    color: '#34C759',
-    fontWeight: '500',
-  },
-  apiIndicatorTextWarning: {
-    fontSize: 12,
-    color: '#FF9500',
-    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -623,19 +448,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  googleBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(0, 122, 255, 0.95)',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 8,
-    zIndex: 2,
-  },
-  googleBadgeText: {
-    fontSize: 12,
-  },
   toiletImage: {
     width: '100%',
     height: 160,
@@ -663,22 +475,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    backgroundColor: '#e3f2fd',
   },
   distanceText: {
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
-  },
-  durationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  durationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 6,
-    fontWeight: '500',
+    color: '#007AFF',
   },
   ratingRow: {
     flexDirection: 'row',
@@ -718,31 +521,12 @@ const styles = StyleSheet.create({
   hoursRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   hoursText: {
     fontSize: 13,
     color: '#666',
     marginLeft: 6,
     fontWeight: '500',
-  },
-  cleanlinessRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cleanlinessLabel: {
-    fontSize: 13,
-    color: '#666',
-    marginRight: 6,
-  },
-  cleanlinessValue: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  lastCleaned: {
-    fontSize: 12,
-    color: '#999',
-    marginLeft: 6,
   },
 });

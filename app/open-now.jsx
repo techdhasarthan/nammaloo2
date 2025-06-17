@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, CircleCheck as CheckCircle, RefreshCw } from 'lucide-react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -97,14 +97,14 @@ export default function OpenNowPage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Open Now</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.loadingContainer}>
-          <Clock size={48} color="#10B981" />
+          <Ionicons name="time" size={48} color="#10B981" />
           <ActivityIndicator size="large" color="#10B981" style={styles.spinner} />
           <Text style={styles.loadingText}>Finding open toilets...</Text>
           <Text style={styles.loadingSubtext}>
@@ -123,21 +123,21 @@ export default function OpenNowPage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Open Now</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.errorContainer}>
-          <Clock size={64} color="#EF4444" />
+          <Ionicons name="time" size={64} color="#EF4444" />
           <Text style={styles.errorTitle}>Unable to Check Status</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity 
             style={styles.retryButton} 
             onPress={loadToilets}
           >
-            <RefreshCw size={16} color="#fff" />
+            <Ionicons name="refresh" size={16} color="#fff" />
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -153,7 +153,7 @@ export default function OpenNowPage() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Open Now</Text>
         <View style={styles.placeholder} />
@@ -162,7 +162,7 @@ export default function OpenNowPage() {
       {/* Results Count */}
       <View style={styles.resultsHeader}>
         <View style={styles.resultsHeaderContent}>
-          <CheckCircle size={18} color="#10B981" />
+          <Ionicons name="checkmark-circle" size={18} color="#10B981" />
           <Text style={styles.resultsCount}>{toilets.length} toilets currently open</Text>
         </View>
         <Text style={styles.resultsSubtext}>
@@ -178,7 +178,7 @@ export default function OpenNowPage() {
       >
         {toilets.length === 0 ? (
           <View style={styles.emptyState}>
-            <Clock size={64} color="#ccc" />
+            <Ionicons name="time" size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>No Open Toilets</Text>
             <Text style={styles.emptyStateText}>
               No toilets appear to be open right now. This might be due to limited operating hours or temporary closures. Please check back later.
@@ -187,7 +187,7 @@ export default function OpenNowPage() {
               style={styles.retryButton} 
               onPress={loadToilets}
             >
-              <RefreshCw size={16} color="#fff" />
+              <Ionicons name="refresh" size={16} color="#fff" />
               <Text style={styles.retryButtonText}>Check Again</Text>
             </TouchableOpacity>
           </View>
@@ -200,7 +200,7 @@ export default function OpenNowPage() {
               activeOpacity={0.7}
             >
               <View style={styles.openBadge}>
-                <CheckCircle size={14} color="#34C759" fill="#34C759" />
+                <Ionicons name="checkmark-circle" size={14} color="#34C759" />
                 <Text style={styles.openBadgeText}>OPEN</Text>
               </View>
               
@@ -220,7 +220,7 @@ export default function OpenNowPage() {
                     </View>
                   </View>
                   <View style={styles.distanceContainer}>
-                    <MapPin size={12} color="#007AFF" />
+                    <Ionicons name="location" size={12} color="#007AFF" />
                     <Text style={styles.distanceText}>{toilet.distance}</Text>
                   </View>
                 </View>
@@ -231,14 +231,14 @@ export default function OpenNowPage() {
 
                 <View style={styles.ratingRow}>
                   <View style={styles.ratingContainer}>
-                    <Star size={16} color="#FFD700" fill="#FFD700" />
+                    <Ionicons name="star" size={16} color="#FFD700" />
                     <Text style={styles.ratingText}>{toilet.rating.toFixed(1)}</Text>
                     <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
                   </View>
                 </View>
 
                 <View style={styles.hoursRow}>
-                  <Clock size={12} color="#666" />
+                  <Ionicons name="time" size={12} color="#666" />
                   <Text style={styles.hoursText}>
                     {toilet.working_hours}
                   </Text>

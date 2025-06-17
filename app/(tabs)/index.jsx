@@ -10,20 +10,13 @@ import {
   SafeAreaView,
 } from 'react-native';
 import {
-  Search,
-  MapPin,
-  Star,
-  Clock,
-  RefreshCw,
-  Navigation,
-  Filter,
-  ChevronRight,
-  User,
-  Heart,
-  Wifi,
-  Car,
-  Accessibility,
-} from 'lucide-react-native';
+  Ionicons,
+  MaterialIcons,
+  FontAwesome5,
+  AntDesign,
+  Feather,
+  MaterialCommunityIcons,
+} from '@expo/vector-icons';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 
@@ -228,11 +221,11 @@ export default function HomeScreen() {
   const renderFeatureIcon = (feature) => {
     switch (feature.toLowerCase()) {
       case 'wifi':
-        return <Wifi size={12} color="#3B82F6" />;
+        return <MaterialIcons name="wifi" size={12} color="#3B82F6" />;
       case 'accessible':
-        return <Accessibility size={12} color="#10B981" />;
+        return <MaterialIcons name="accessible" size={12} color="#10B981" />;
       case 'parking':
-        return <Car size={12} color="#6B7280" />;
+        return <Ionicons name="car" size={12} color="#6B7280" />;
       default:
         return null;
     }
@@ -245,7 +238,7 @@ export default function HomeScreen() {
           <Text style={styles.loadingTitle}>Namma Loo</Text>
           <Text style={styles.loadingText}>Loading toilets near you...</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadToilets}>
-            <RefreshCw size={18} color="#FFFFFF" />
+            <Ionicons name="refresh" size={18} color="#FFFFFF" />
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -267,7 +260,7 @@ export default function HomeScreen() {
           <View style={styles.headerTop}>
             <View style={styles.locationSection}>
               <View style={styles.locationBadge}>
-                <MapPin size={16} color="#10B981" />
+                <Ionicons name="location" size={16} color="#10B981" />
               </View>
               <View style={styles.locationTextContainer}>
                 <Text style={styles.locationLabel}>Showing toilets near</Text>
@@ -282,7 +275,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/profile')}
             >
               <View style={styles.profileIcon}>
-                <User size={20} color="#FFFFFF" />
+                <Ionicons name="person" size={20} color="#FFFFFF" />
               </View>
             </TouchableOpacity>
           </View>
@@ -303,7 +296,7 @@ export default function HomeScreen() {
         {/* Search Section */}
         <View style={styles.searchSection}>
           <View style={styles.searchBar}>
-            <Search size={18} color="#9CA3AF" />
+            <Ionicons name="search" size={18} color="#9CA3AF" />
             <TextInput
               style={styles.searchInput}
               value={searchQuery}
@@ -313,7 +306,7 @@ export default function HomeScreen() {
             />
           </View>
           <TouchableOpacity style={styles.filterButton}>
-            <Filter size={18} color="#FFFFFF" />
+            <Ionicons name="filter" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -324,7 +317,7 @@ export default function HomeScreen() {
             <View style={styles.quickActions}>
               <TouchableOpacity style={styles.quickActionCard} onPress={navigateToNearMe}>
                 <View style={styles.quickActionIcon}>
-                  <Navigation size={24} color="#3B82F6" />
+                  <Ionicons name="navigate" size={24} color="#3B82F6" />
                 </View>
                 <Text style={styles.quickActionTitle}>Near Me</Text>
                 <Text style={styles.quickActionSubtitle}>Find closest toilets</Text>
@@ -332,7 +325,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity style={styles.quickActionCard} onPress={navigateToTopRated}>
                 <View style={styles.quickActionIcon}>
-                  <Star size={24} color="#F59E0B" />
+                  <Ionicons name="star" size={24} color="#F59E0B" />
                 </View>
                 <Text style={styles.quickActionTitle}>Top Rated</Text>
                 <Text style={styles.quickActionSubtitle}>Highest quality</Text>
@@ -340,7 +333,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity style={styles.quickActionCard} onPress={navigateToOpenNow}>
                 <View style={styles.quickActionIcon}>
-                  <Clock size={24} color="#10B981" />
+                  <Ionicons name="time" size={24} color="#10B981" />
                 </View>
                 <Text style={styles.quickActionTitle}>Open Now</Text>
                 <Text style={styles.quickActionSubtitle}>Currently available</Text>
@@ -370,7 +363,7 @@ export default function HomeScreen() {
                   <View style={styles.topRatedContent}>
                     <Text style={styles.topRatedName} numberOfLines={1}>{toilet.name}</Text>
                     <View style={styles.topRatedRating}>
-                      <Star size={14} color="#F59E0B" fill="#F59E0B" />
+                      <Ionicons name="star" size={14} color="#F59E0B" />
                       <Text style={styles.topRatedRatingText}>{toilet.rating}</Text>
                     </View>
                   </View>
@@ -388,7 +381,7 @@ export default function HomeScreen() {
           
           {filteredToilets.length === 0 ? (
             <View style={styles.emptyState}>
-              <MapPin size={64} color="#D1D5DB" />
+              <Ionicons name="location" size={64} color="#D1D5DB" />
               <Text style={styles.emptyStateTitle}>
                 {searchQuery.length > 0 ? 'No toilets found' : 'No toilets available'}
               </Text>
@@ -427,7 +420,7 @@ export default function HomeScreen() {
                       </View>
                     </View>
                     <View style={styles.distanceContainer}>
-                      <MapPin size={12} color="#3B82F6" />
+                      <Ionicons name="location" size={12} color="#3B82F6" />
                       <Text style={styles.distanceText}>{toilet.distance}</Text>
                     </View>
                   </View>
@@ -436,7 +429,7 @@ export default function HomeScreen() {
 
                   <View style={styles.ratingRow}>
                     <View style={styles.ratingContainer}>
-                      <Star size={16} color="#F59E0B" fill="#F59E0B" />
+                      <Ionicons name="star" size={16} color="#F59E0B" />
                       <Text style={styles.ratingText}>{toilet.rating}</Text>
                       <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
                     </View>
@@ -450,7 +443,7 @@ export default function HomeScreen() {
                   </View>
 
                   <View style={styles.hoursRow}>
-                    <Clock size={12} color="#6B7280" />
+                    <Ionicons name="time" size={12} color="#6B7280" />
                     <Text style={styles.hoursText}>{toilet.working_hours}</Text>
                   </View>
 
@@ -471,9 +464,9 @@ export default function HomeScreen() {
 
                 <View style={styles.cardActions}>
                   <TouchableOpacity style={styles.favoriteButton}>
-                    <Heart size={16} color="#EF4444" />
+                    <Ionicons name="heart" size={16} color="#EF4444" />
                   </TouchableOpacity>
-                  <ChevronRight size={20} color="#9CA3AF" />
+                  <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
                 </View>
               </TouchableOpacity>
             ))

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, RefreshCw, Navigation } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -110,14 +110,14 @@ export default function NearMePage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Near Me</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.loadingContainer}>
-          <Navigation size={48} color="#007AFF" />
+          <Ionicons name="navigate" size={48} color="#007AFF" />
           <ActivityIndicator size="large" color="#007AFF" style={styles.spinner} />
           <Text style={styles.loadingText}>Finding nearby toilets...</Text>
           <Text style={styles.loadingSubtext}>
@@ -136,21 +136,21 @@ export default function NearMePage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Near Me</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.errorContainer}>
-          <MapPin size={64} color="#EF4444" />
+          <Ionicons name="location" size={64} color="#EF4444" />
           <Text style={styles.errorTitle}>Unable to Load Toilets</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity 
             style={styles.retryButton} 
             onPress={handleRefreshToilets}
           >
-            <RefreshCw size={16} color="#fff" />
+            <Ionicons name="refresh" size={16} color="#fff" />
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -166,21 +166,21 @@ export default function NearMePage() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Near Me</Text>
         <TouchableOpacity 
           style={styles.refreshButton}
           onPress={handleRefreshToilets}
         >
-          <RefreshCw size={20} color="#007AFF" />
+          <Ionicons name="refresh" size={20} color="#007AFF" />
         </TouchableOpacity>
       </View>
 
       {/* Results Header */}
       <View style={styles.resultsHeader}>
         <View style={styles.resultsHeaderContent}>
-          <MapPin size={18} color="#34C759" />
+          <Ionicons name="location" size={18} color="#34C759" />
           <Text style={styles.resultsCount}>
             {toilets.length} toilets found nearby
           </Text>
@@ -198,7 +198,7 @@ export default function NearMePage() {
       >
         {toilets.length === 0 ? (
           <View style={styles.emptyState}>
-            <MapPin size={64} color="#ccc" />
+            <Ionicons name="location" size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>No Nearby Toilets</Text>
             <Text style={styles.emptyStateText}>
               No toilets found within 10km of your location. Try expanding your search area or check back later.
@@ -207,7 +207,7 @@ export default function NearMePage() {
               style={styles.retryButton} 
               onPress={handleRefreshToilets}
             >
-              <RefreshCw size={16} color="#fff" />
+              <Ionicons name="refresh" size={16} color="#fff" />
               <Text style={styles.retryButtonText}>Search Again</Text>
             </TouchableOpacity>
           </View>
@@ -236,7 +236,7 @@ export default function NearMePage() {
                     {toilet.name}
                   </Text>
                   <View style={styles.distanceContainer}>
-                    <MapPin size={12} color="#007AFF" />
+                    <Ionicons name="location" size={12} color="#007AFF" />
                     <Text style={styles.distanceText}>
                       {toilet.distance}
                     </Text>
@@ -249,7 +249,7 @@ export default function NearMePage() {
 
                 <View style={styles.ratingRow}>
                   <View style={styles.ratingContainer}>
-                    <Star size={14} color="#FFD700" fill="#FFD700" />
+                    <Ionicons name="star" size={14} color="#FFD700" />
                     <Text style={styles.ratingText}>{toilet.rating.toFixed(1)}</Text>
                     <Text style={styles.reviewCount}>({toilet.reviews})</Text>
                   </View>
@@ -263,14 +263,14 @@ export default function NearMePage() {
                 </View>
 
                 <View style={styles.hoursRow}>
-                  <Clock size={12} color="#666" />
+                  <Ionicons name="time" size={12} color="#666" />
                   <Text style={styles.hoursText}>
                     {toilet.working_hours}
                   </Text>
                 </View>
 
                 <View style={styles.durationRow}>
-                  <Navigation size={12} color="#666" />
+                  <Ionicons name="navigate" size={12} color="#666" />
                   <Text style={styles.durationText}>
                     {toilet.duration} drive
                   </Text>

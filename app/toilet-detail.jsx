@@ -8,17 +8,10 @@ import {
   SafeAreaView 
 } from 'react-native';
 import { 
-  ArrowLeft, 
-  Star, 
-  MapPin, 
-  Clock, 
-  Navigation, 
-  Share, 
-  Heart,
-  Phone,
-  Wifi,
-  Car
-} from 'lucide-react-native';
+  Ionicons,
+  MaterialIcons,
+  FontAwesome5
+} from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function ToiletDetailScreen() {
@@ -38,10 +31,17 @@ export default function ToiletDetailScreen() {
   };
 
   const additionalFeatures = [
-    { icon: Wifi, label: 'Free WiFi', available: true },
-    { icon: Car, label: 'Parking', available: true },
-    { icon: Phone, label: 'Emergency Call', available: false },
+    { icon: 'wifi', iconSet: 'MaterialIcons', label: 'Free WiFi', available: true },
+    { icon: 'car', iconSet: 'Ionicons', label: 'Parking', available: true },
+    { icon: 'call', iconSet: 'Ionicons', label: 'Emergency Call', available: false },
   ];
+
+  const renderIcon = (item) => {
+    if (item.iconSet === 'MaterialIcons') {
+      return <MaterialIcons name={item.icon} size={20} color={item.available ? '#16A34A' : '#DC2626'} />;
+    }
+    return <Ionicons name={item.icon} size={20} color={item.available ? '#16A34A' : '#DC2626'} />;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,15 +51,15 @@ export default function ToiletDetailScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
         
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.actionButton}>
-            <Heart size={20} color="#EF4444" />
+            <Ionicons name="heart" size={20} color="#EF4444" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <Share size={20} color="#6B7280" />
+            <Ionicons name="share" size={20} color="#6B7280" />
           </TouchableOpacity>
         </View>
       </View>
@@ -84,13 +84,13 @@ export default function ToiletDetailScreen() {
           
           <View style={styles.metaRow}>
             <View style={styles.ratingContainer}>
-              <Star size={16} color="#F59E0B" fill="#F59E0B" />
+              <Ionicons name="star" size={16} color="#F59E0B" />
               <Text style={styles.ratingText}>{toilet.rating}</Text>
               <Text style={styles.reviewText}>({toilet.reviews} reviews)</Text>
             </View>
             
             <View style={styles.distanceContainer}>
-              <MapPin size={16} color="#6B7280" />
+              <Ionicons name="location" size={16} color="#6B7280" />
               <Text style={styles.distanceText}>{toilet.distance}</Text>
             </View>
           </View>
@@ -99,12 +99,12 @@ export default function ToiletDetailScreen() {
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <TouchableOpacity style={styles.primaryButton}>
-            <Navigation size={20} color="#FFFFFF" />
+            <Ionicons name="navigate" size={20} color="#FFFFFF" />
             <Text style={styles.primaryButtonText}>Get Directions</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.secondaryButton}>
-            <Phone size={20} color="#3B82F6" />
+            <Ionicons name="call" size={20} color="#3B82F6" />
             <Text style={styles.secondaryButtonText}>Call</Text>
           </TouchableOpacity>
         </View>
@@ -129,10 +129,7 @@ export default function ToiletDetailScreen() {
               <View style={[styles.serviceIcon, { 
                 backgroundColor: feature.available ? '#DCFCE7' : '#FEF2F2' 
               }]}>
-                <feature.icon 
-                  size={20} 
-                  color={feature.available ? '#16A34A' : '#DC2626'} 
-                />
+                {renderIcon(feature)}
               </View>
               <Text style={[styles.serviceText, { 
                 color: feature.available ? '#1F2937' : '#9CA3AF' 
@@ -152,7 +149,7 @@ export default function ToiletDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Working Hours</Text>
           <View style={styles.hoursContainer}>
-            <Clock size={20} color="#6B7280" />
+            <Ionicons name="time" size={20} color="#6B7280" />
             <View style={styles.hoursInfo}>
               <Text style={styles.hoursText}>Open 24 Hours</Text>
               <Text style={styles.hoursSubtext}>Available all day, every day</Text>
@@ -174,11 +171,11 @@ export default function ToiletDetailScreen() {
                   <Text style={styles.reviewUser}>User {review}</Text>
                   <View style={styles.reviewRating}>
                     {[...Array(5)].map((_, i) => (
-                      <Star 
+                      <Ionicons 
                         key={i} 
+                        name="star" 
                         size={12} 
-                        color="#F59E0B" 
-                        fill={i < 4 ? "#F59E0B" : "transparent"} 
+                        color={i < 4 ? "#F59E0B" : "#E5E7EB"} 
                       />
                     ))}
                   </View>

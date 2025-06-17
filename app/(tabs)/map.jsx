@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { MapPin, Navigation, Zap } from 'lucide-react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 export default function MapScreen() {
   return (
@@ -7,7 +7,7 @@ export default function MapScreen() {
       {/* Map Placeholder */}
       <View style={styles.mapContainer}>
         <View style={styles.mapPlaceholder}>
-          <MapPin size={48} color="#3B82F6" />
+          <Ionicons name="location" size={48} color="#3B82F6" />
           <Text style={styles.mapTitle}>Interactive Map</Text>
           <Text style={styles.mapSubtitle}>
             Map view will show toilet locations with real-time data
@@ -17,10 +17,10 @@ export default function MapScreen() {
         {/* Map Controls */}
         <View style={styles.mapControls}>
           <TouchableOpacity style={styles.controlButton}>
-            <Navigation size={20} color="#FFFFFF" />
+            <Ionicons name="navigate" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.controlButton}>
-            <Zap size={20} color="#FFFFFF" />
+            <Ionicons name="flash" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>

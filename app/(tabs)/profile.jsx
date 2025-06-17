@@ -7,55 +7,62 @@ import {
   SafeAreaView 
 } from 'react-native';
 import { 
-  User, 
-  Settings, 
-  Heart, 
-  MapPin, 
-  Star, 
-  Bell, 
-  HelpCircle,
-  ChevronRight 
-} from 'lucide-react-native';
+  Ionicons,
+  MaterialIcons,
+  AntDesign,
+  Feather
+} from '@expo/vector-icons';
 
 export default function ProfileScreen() {
   const menuItems = [
     {
-      icon: Heart,
+      icon: 'heart',
+      iconSet: 'Ionicons',
       title: 'Saved Toilets',
       subtitle: '5 locations saved',
       color: '#EF4444',
     },
     {
-      icon: MapPin,
+      icon: 'location',
+      iconSet: 'Ionicons',
       title: 'Recent Visits',
       subtitle: 'View your history',
       color: '#3B82F6',
     },
     {
-      icon: Star,
+      icon: 'star',
+      iconSet: 'Ionicons',
       title: 'My Reviews',
       subtitle: '12 reviews written',
       color: '#F59E0B',
     },
     {
-      icon: Bell,
+      icon: 'notifications',
+      iconSet: 'Ionicons',
       title: 'Notifications',
       subtitle: 'Manage preferences',
       color: '#10B981',
     },
     {
-      icon: Settings,
+      icon: 'settings',
+      iconSet: 'Ionicons',
       title: 'Settings',
       subtitle: 'App preferences',
       color: '#6B7280',
     },
     {
-      icon: HelpCircle,
+      icon: 'help-circle',
+      iconSet: 'Ionicons',
       title: 'Help & Support',
       subtitle: 'Get assistance',
       color: '#8B5CF6',
     },
   ];
+
+  const renderIcon = (item) => {
+    const IconComponent = Ionicons;
+    return <IconComponent size={20} color="#FFFFFF" name={item.icon} />;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,7 +71,7 @@ export default function ProfileScreen() {
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <User size={32} color="#FFFFFF" />
+              <Ionicons name="person" size={32} color="#FFFFFF" />
             </View>
             <View style={styles.onlineIndicator} />
           </View>
@@ -98,7 +105,7 @@ export default function ProfileScreen() {
           {menuItems.map((item, index) => (
             <TouchableOpacity key={index} style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: item.color }]}>
-                <item.icon size={20} color="#FFFFFF" />
+                {renderIcon(item)}
               </View>
               
               <View style={styles.menuContent}>
@@ -106,7 +113,7 @@ export default function ProfileScreen() {
                 <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
               </View>
               
-              <ChevronRight size={20} color="#9CA3AF" />
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           ))}
         </View>

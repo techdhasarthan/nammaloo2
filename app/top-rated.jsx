@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, Award, RefreshCw } from 'lucide-react-native';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -109,14 +109,14 @@ export default function TopRatedPage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Top Rated</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.loadingContainer}>
-          <Award size={48} color="#F59E0B" />
+          <MaterialIcons name="emoji-events" size={48} color="#F59E0B" />
           <ActivityIndicator size="large" color="#F59E0B" style={styles.spinner} />
           <Text style={styles.loadingText}>Loading top rated toilets...</Text>
           <Text style={styles.loadingSubtext}>
@@ -135,21 +135,21 @@ export default function TopRatedPage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Top Rated</Text>
           <View style={styles.placeholder} />
         </View>
         
         <View style={styles.errorContainer}>
-          <Award size={64} color="#EF4444" />
+          <MaterialIcons name="emoji-events" size={64} color="#EF4444" />
           <Text style={styles.errorTitle}>Unable to Load Top Rated</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity 
             style={styles.retryButton} 
             onPress={loadToilets}
           >
-            <RefreshCw size={16} color="#fff" />
+            <Ionicons name="refresh" size={16} color="#fff" />
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -165,7 +165,7 @@ export default function TopRatedPage() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Top Rated</Text>
         <View style={styles.placeholder} />
@@ -174,7 +174,7 @@ export default function TopRatedPage() {
       {/* Results Count */}
       <View style={styles.resultsHeader}>
         <View style={styles.resultsHeaderContent}>
-          <Award size={18} color="#F59E0B" />
+          <MaterialIcons name="emoji-events" size={18} color="#F59E0B" />
           <Text style={styles.resultsCount}>{toilets.length} highly rated toilets</Text>
         </View>
         <Text style={styles.resultsSubtext}>
@@ -190,7 +190,7 @@ export default function TopRatedPage() {
       >
         {toilets.length === 0 ? (
           <View style={styles.emptyState}>
-            <Award size={64} color="#ccc" />
+            <MaterialIcons name="emoji-events" size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>No Top Rated Toilets</Text>
             <Text style={styles.emptyStateText}>
               We couldn't find any highly rated toilets in your area. Check back later as we add more locations.
@@ -199,7 +199,7 @@ export default function TopRatedPage() {
               style={styles.retryButton} 
               onPress={loadToilets}
             >
-              <RefreshCw size={16} color="#fff" />
+              <Ionicons name="refresh" size={16} color="#fff" />
               <Text style={styles.retryButtonText}>Refresh</Text>
             </TouchableOpacity>
           </View>
@@ -213,7 +213,7 @@ export default function TopRatedPage() {
             >
               {index === 0 && (
                 <View style={styles.topBadge}>
-                  <Award size={16} color="#FFD700" fill="#FFD700" />
+                  <MaterialIcons name="emoji-events" size={16} color="#FFD700" />
                   <Text style={styles.topBadgeText}>#1 Rated</Text>
                 </View>
               )}
@@ -234,7 +234,7 @@ export default function TopRatedPage() {
                     </View>
                   </View>
                   <View style={styles.distanceContainer}>
-                    <MapPin size={12} color="#007AFF" />
+                    <Ionicons name="location" size={12} color="#007AFF" />
                     <Text style={styles.distanceText}>{toilet.distance}</Text>
                   </View>
                 </View>
@@ -245,14 +245,14 @@ export default function TopRatedPage() {
 
                 <View style={styles.ratingRow}>
                   <View style={styles.ratingContainer}>
-                    <Star size={16} color="#FFD700" fill="#FFD700" />
+                    <Ionicons name="star" size={16} color="#FFD700" />
                     <Text style={styles.ratingText}>{toilet.rating.toFixed(1)}</Text>
                     <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
                   </View>
                 </View>
 
                 <View style={styles.hoursRow}>
-                  <Clock size={12} color="#666" />
+                  <Ionicons name="time" size={12} color="#666" />
                   <Text style={styles.hoursText}>
                     {toilet.working_hours}
                   </Text>

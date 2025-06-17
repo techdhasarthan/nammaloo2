@@ -31,7 +31,8 @@ const mockToilets = [
     reviews: 127,
     distance: '2.3 km',
     duration: '8 mins',
-    image_url: 'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400',
+    image_url:
+      'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400',
     working_hours: '10:00 AM - 10:00 PM',
     status: 'open',
     features: ['Premium', 'Accessible', 'Free', 'WiFi'],
@@ -41,7 +42,7 @@ const mockToilets = [
     location: {
       latitude: 12.9716,
       longitude: 77.5946,
-    }
+    },
   },
   {
     _id: '2',
@@ -52,7 +53,8 @@ const mockToilets = [
     reviews: 89,
     distance: '1.8 km',
     duration: '6 mins',
-    image_url: 'https://images.pexels.com/photos/6585756/pexels-photo-6585756.jpeg?auto=compress&cs=tinysrgb&w=400',
+    image_url:
+      'https://images.pexels.com/photos/6585756/pexels-photo-6585756.jpeg?auto=compress&cs=tinysrgb&w=400',
     working_hours: '6:00 AM - 8:00 PM',
     status: 'open',
     features: ['Clean', 'Free', 'Accessible'],
@@ -62,7 +64,7 @@ const mockToilets = [
     location: {
       latitude: 12.9716,
       longitude: 77.5946,
-    }
+    },
   },
   {
     _id: '3',
@@ -73,7 +75,8 @@ const mockToilets = [
     reviews: 156,
     distance: '1.2 km',
     duration: '4 mins',
-    image_url: 'https://images.pexels.com/photos/6585759/pexels-photo-6585759.jpeg?auto=compress&cs=tinysrgb&w=400',
+    image_url:
+      'https://images.pexels.com/photos/6585759/pexels-photo-6585759.jpeg?auto=compress&cs=tinysrgb&w=400',
     working_hours: '10:00 AM - 11:00 PM',
     status: 'open',
     features: ['VIP', 'Premium', 'Accessible', 'Free'],
@@ -83,7 +86,7 @@ const mockToilets = [
     location: {
       latitude: 12.9716,
       longitude: 77.5946,
-    }
+    },
   },
   {
     _id: '4',
@@ -94,7 +97,8 @@ const mockToilets = [
     reviews: 234,
     distance: '3.1 km',
     duration: '12 mins',
-    image_url: 'https://images.pexels.com/photos/6585758/pexels-photo-6585758.jpeg?auto=compress&cs=tinysrgb&w=400',
+    image_url:
+      'https://images.pexels.com/photos/6585758/pexels-photo-6585758.jpeg?auto=compress&cs=tinysrgb&w=400',
     working_hours: '24 Hours',
     status: 'open',
     features: ['24/7', 'Accessible', 'Shower'],
@@ -104,8 +108,8 @@ const mockToilets = [
     location: {
       latitude: 12.9716,
       longitude: 77.5946,
-    }
-  }
+    },
+  },
 ];
 
 export default function HomeScreen() {
@@ -137,14 +141,16 @@ export default function HomeScreen() {
   const loadToilets = async () => {
     try {
       setLoading(true);
-      
+
       // Simulate API loading delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setToilets(mockToilets);
-      setTopRatedToilets(mockToilets.sort((a, b) => b.rating - a.rating).slice(0, 3));
+      setTopRatedToilets(
+        mockToilets.sort((a, b) => b.rating - a.rating).slice(0, 3)
+      );
       setFilteredToilets(mockToilets);
-      
+
       // Mock user location
       setUserLocation({
         latitude: 12.9716,
@@ -158,9 +164,10 @@ export default function HomeScreen() {
   };
 
   const performSearch = () => {
-    const results = mockToilets.filter(toilet =>
-      toilet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      toilet.address.toLowerCase().includes(searchQuery.toLowerCase())
+    const results = mockToilets.filter(
+      (toilet) =>
+        toilet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        toilet.address.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredToilets(results);
   };
@@ -174,7 +181,7 @@ export default function HomeScreen() {
   const navigateToToiletDetail = (toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { 
+      params: {
         toiletId: toilet.uuid || toilet._id,
         name: toilet.name,
         address: toilet.address,
@@ -183,21 +190,24 @@ export default function HomeScreen() {
         distance: toilet.distance,
         image: toilet.image_url,
         isOpen: toilet.status === 'open' ? 'true' : 'false',
-        features: JSON.stringify(toilet.features || [])
+        features: JSON.stringify(toilet.features || []),
       },
     });
   };
 
   const navigateToNearMe = () => {
-    router.push('/near-me');
+    console.log('clicking near-me');
+    // router.push('/near-me');
   };
 
   const navigateToTopRated = () => {
-    router.push('/top-rated');
+    console.log('clicking top-rated');
+    // router.push('/top-rated');
   };
 
   const navigateToOpenNow = () => {
-    router.push('/open-now');
+    console.log('clicking open-now');
+    // router.push('/open-now');
   };
 
   const getStatusColor = (status) => {
@@ -315,15 +325,23 @@ export default function HomeScreen() {
           <View style={styles.quickActionsSection}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActions}>
-              <TouchableOpacity style={styles.quickActionCard} onPress={navigateToNearMe}>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={navigateToNearMe}
+              >
                 <View style={styles.quickActionIcon}>
                   <Ionicons name="navigate" size={24} color="#3B82F6" />
                 </View>
                 <Text style={styles.quickActionTitle}>Near Me</Text>
-                <Text style={styles.quickActionSubtitle}>Find closest toilets</Text>
+                <Text style={styles.quickActionSubtitle}>
+                  Find closest toilets
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.quickActionCard} onPress={navigateToTopRated}>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={navigateToTopRated}
+              >
                 <View style={styles.quickActionIcon}>
                   <Ionicons name="star" size={24} color="#F59E0B" />
                 </View>
@@ -331,12 +349,17 @@ export default function HomeScreen() {
                 <Text style={styles.quickActionSubtitle}>Highest quality</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.quickActionCard} onPress={navigateToOpenNow}>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={navigateToOpenNow}
+              >
                 <View style={styles.quickActionIcon}>
                   <Ionicons name="time" size={24} color="#10B981" />
                 </View>
                 <Text style={styles.quickActionTitle}>Open Now</Text>
-                <Text style={styles.quickActionSubtitle}>Currently available</Text>
+                <Text style={styles.quickActionSubtitle}>
+                  Currently available
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -351,20 +374,31 @@ export default function HomeScreen() {
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
-            
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+            >
               {topRatedToilets.map((toilet) => (
                 <TouchableOpacity
                   key={toilet._id}
                   style={styles.topRatedCard}
                   onPress={() => navigateToToiletDetail(toilet)}
                 >
-                  <Image source={{ uri: toilet.image_url }} style={styles.topRatedImage} />
+                  <Image
+                    source={{ uri: toilet.image_url }}
+                    style={styles.topRatedImage}
+                  />
                   <View style={styles.topRatedContent}>
-                    <Text style={styles.topRatedName} numberOfLines={1}>{toilet.name}</Text>
+                    <Text style={styles.topRatedName} numberOfLines={1}>
+                      {toilet.name}
+                    </Text>
                     <View style={styles.topRatedRating}>
                       <Ionicons name="star" size={14} color="#F59E0B" />
-                      <Text style={styles.topRatedRatingText}>{toilet.rating}</Text>
+                      <Text style={styles.topRatedRatingText}>
+                        {toilet.rating}
+                      </Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -376,23 +410,26 @@ export default function HomeScreen() {
         {/* All Toilets Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {searchQuery.length > 0 ? `Search Results (${filteredToilets.length})` : 'All Toilets'}
+            {searchQuery.length > 0
+              ? `Search Results (${filteredToilets.length})`
+              : 'All Toilets'}
           </Text>
-          
+
           {filteredToilets.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="location" size={64} color="#D1D5DB" />
               <Text style={styles.emptyStateTitle}>
-                {searchQuery.length > 0 ? 'No toilets found' : 'No toilets available'}
+                {searchQuery.length > 0
+                  ? 'No toilets found'
+                  : 'No toilets available'}
               </Text>
               <Text style={styles.emptyStateText}>
-                {searchQuery.length > 0 
+                {searchQuery.length > 0
                   ? `No toilets match "${searchQuery}". Try a different search term.`
-                  : 'We couldn\'t find any toilets in your area. Please try again later.'
-                }
+                  : "We couldn't find any toilets in your area. Please try again later."}
               </Text>
               {searchQuery.length > 0 && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.clearSearchButton}
                   onPress={() => setSearchQuery('')}
                 >
@@ -407,16 +444,26 @@ export default function HomeScreen() {
                 style={styles.toiletCard}
                 onPress={() => navigateToToiletDetail(toilet)}
               >
-                <Image source={{ uri: toilet.image_url }} style={styles.toiletImage} />
-                
+                <Image
+                  source={{ uri: toilet.image_url }}
+                  style={styles.toiletImage}
+                />
+
                 <View style={styles.cardContent}>
                   <View style={styles.cardHeader}>
                     <View style={styles.nameContainer}>
                       <Text style={styles.toiletName} numberOfLines={1}>
                         {toilet.name}
                       </Text>
-                      <View style={[styles.badge, { backgroundColor: getBadgeColor(toilet.rating) }]}>
-                        <Text style={styles.badgeText}>{getBadgeText(toilet.rating)}</Text>
+                      <View
+                        style={[
+                          styles.badge,
+                          { backgroundColor: getBadgeColor(toilet.rating) },
+                        ]}
+                      >
+                        <Text style={styles.badgeText}>
+                          {getBadgeText(toilet.rating)}
+                        </Text>
                       </View>
                     </View>
                     <View style={styles.distanceContainer}>
@@ -425,18 +472,32 @@ export default function HomeScreen() {
                     </View>
                   </View>
 
-                  <Text style={styles.toiletAddress} numberOfLines={1}>{toilet.address}</Text>
+                  <Text style={styles.toiletAddress} numberOfLines={1}>
+                    {toilet.address}
+                  </Text>
 
                   <View style={styles.ratingRow}>
                     <View style={styles.ratingContainer}>
                       <Ionicons name="star" size={16} color="#F59E0B" />
                       <Text style={styles.ratingText}>{toilet.rating}</Text>
-                      <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
+                      <Text style={styles.reviewCount}>
+                        ({toilet.reviews} reviews)
+                      </Text>
                     </View>
-                    
+
                     <View style={styles.statusContainer}>
-                      <View style={[styles.statusDot, { backgroundColor: getStatusColor(toilet.status) }]} />
-                      <Text style={[styles.statusText, { color: getStatusColor(toilet.status) }]}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: getStatusColor(toilet.status) },
+                        ]}
+                      />
+                      <Text
+                        style={[
+                          styles.statusText,
+                          { color: getStatusColor(toilet.status) },
+                        ]}
+                      >
                         {toilet.status === 'open' ? 'Open' : 'Closed'}
                       </Text>
                     </View>
@@ -456,7 +517,9 @@ export default function HomeScreen() {
                     ))}
                     {toilet.features.length > 3 && (
                       <View style={styles.moreFeatures}>
-                        <Text style={styles.moreText}>+{toilet.features.length - 3}</Text>
+                        <Text style={styles.moreText}>
+                          +{toilet.features.length - 3}
+                        </Text>
                       </View>
                     )}
                   </View>

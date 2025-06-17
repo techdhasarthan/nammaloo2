@@ -1,4 +1,3 @@
-// REDESIGNED HomeScreen - Modern, Minimalistic & Clean
 import {
   View,
   Text,
@@ -7,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Alert,
   RefreshControl,
   SafeAreaView,
 } from 'react-native';
@@ -18,51 +16,113 @@ import {
   Clock,
   RefreshCw,
   Navigation,
-  Share,
   Filter,
   ChevronRight,
   User,
+  Heart,
+  Wifi,
+  Car,
+  Accessibility,
 } from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import {
-  getAllToilets,
-  getTopRated,
-  testConnection,
-  searchForToilets,
-} from '../../lib/mockApi';
 
-import { getCurrentLocation, getToiletDistance } from '../../lib/location';
-import { globalDistanceCache } from '../../lib/globalDistanceCache';
-
-import { recentToiletCache } from '../../lib/recentToiletCache';
-
-import FilterModal, { defaultFilters } from '../../components/FilterModal';
-import { applyFilters, getActiveFilterCount } from '../../lib/filtering';
-import ShareModal from '../../components/ShareModal';
-import QuickActions from '../../components/QuickActions';
-import SearchSection from '../../components/SearchSection';
-import ToiletList from '../../components/ToiletList';
+// Mock toilet data for homepage
+const mockToilets = [
+  {
+    _id: '1',
+    uuid: '1',
+    name: 'Phoenix MarketCity Mall Restroom',
+    address: 'Whitefield Main Road, Mahadevapura, Bangalore',
+    rating: 4.5,
+    reviews: 127,
+    distance: '2.3 km',
+    duration: '8 mins',
+    image_url: 'https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=400',
+    working_hours: '10:00 AM - 10:00 PM',
+    status: 'open',
+    features: ['Premium', 'Accessible', 'Free', 'WiFi'],
+    type: 'Mall',
+    is_paid: 'No',
+    wheelchair: 'Yes',
+    location: {
+      latitude: 12.9716,
+      longitude: 77.5946,
+    }
+  },
+  {
+    _id: '2',
+    uuid: '2',
+    name: 'Cubbon Park Public Toilet',
+    address: 'Cubbon Park, Kasturba Road, Bangalore',
+    rating: 4.2,
+    reviews: 89,
+    distance: '1.8 km',
+    duration: '6 mins',
+    image_url: 'https://images.pexels.com/photos/6585756/pexels-photo-6585756.jpeg?auto=compress&cs=tinysrgb&w=400',
+    working_hours: '6:00 AM - 8:00 PM',
+    status: 'open',
+    features: ['Clean', 'Free', 'Accessible'],
+    type: 'Public',
+    is_paid: 'No',
+    wheelchair: 'Yes',
+    location: {
+      latitude: 12.9716,
+      longitude: 77.5946,
+    }
+  },
+  {
+    _id: '3',
+    uuid: '3',
+    name: 'UB City Mall Premium Restroom',
+    address: 'UB City Mall, Vittal Mallya Road, Bangalore',
+    rating: 4.8,
+    reviews: 156,
+    distance: '1.2 km',
+    duration: '4 mins',
+    image_url: 'https://images.pexels.com/photos/6585759/pexels-photo-6585759.jpeg?auto=compress&cs=tinysrgb&w=400',
+    working_hours: '10:00 AM - 11:00 PM',
+    status: 'open',
+    features: ['VIP', 'Premium', 'Accessible', 'Free'],
+    type: 'Mall',
+    is_paid: 'No',
+    wheelchair: 'Yes',
+    location: {
+      latitude: 12.9716,
+      longitude: 77.5946,
+    }
+  },
+  {
+    _id: '4',
+    uuid: '4',
+    name: 'Bangalore Railway Station Restroom',
+    address: 'Kempegowda Railway Station, Bangalore',
+    rating: 3.8,
+    reviews: 234,
+    distance: '3.1 km',
+    duration: '12 mins',
+    image_url: 'https://images.pexels.com/photos/6585758/pexels-photo-6585758.jpeg?auto=compress&cs=tinysrgb&w=400',
+    working_hours: '24 Hours',
+    status: 'open',
+    features: ['24/7', 'Accessible', 'Shower'],
+    type: 'Transport',
+    is_paid: 'Yes',
+    wheelchair: 'Yes',
+    location: {
+      latitude: 12.9716,
+      longitude: 77.5946,
+    }
+  }
+];
 
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [toilets, setToilets] = useState([]);
   const [topRatedToilets, setTopRatedToilets] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
   const [filteredToilets, setFilteredToilets] = useState([]);
-  const [recentToilets, setRecentToilets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('Initializing...');
-  const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
-  const [userLocationAddress, setUserLocationAddress] = useState('Chennai');
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [selectedToilet, setSelectedToilet] = useState(null);
-  const [currentFilters, setCurrentFilters] = useState(defaultFilters);
-  const [globalCacheStatus, setGlobalCacheStatus] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -73,184 +133,65 @@ export default function HomeScreen() {
     if (searchQuery.length > 0) {
       performSearch();
     } else {
-      applyFiltersToToilets();
-    }
-  }, [searchQuery, userLocation, toilets, currentFilters]);
-
-  const initializeApp = async () => {
-    await getUserLocation();
-    await loadToilets();
-
-    recentToiletCache.subscribe((recentToilets) => {
-      const viewedToilets = recentToilets.filter(
-        (toilet) => toilet.viewCount > 0
-      );
-      setRecentToilets(viewedToilets);
-    });
-  };
-
-  const applyFiltersToToilets = async () => {
-    try {
-      const filtered = applyFilters(
-        toilets,
-        currentFilters,
-        userLocation || undefined
-      );
-      setFilteredToilets(filtered);
-      setSearchResults([]);
-    } catch (error) {
-      console.error('Error applying filters:', error);
       setFilteredToilets(toilets);
     }
-  };
+  }, [searchQuery, toilets]);
 
-  const getUserLocation = async () => {
-    try {
-      setLocationLoading(true);
-      console.log('📍 === GETTING USER LOCATION FOR HOME SCREEN ===');
-      const location = await getCurrentLocation();
-      if (location) {
-        setUserLocation(location);
-        console.log('✅ Got user location for Home Screen:', location);
-
-        setGlobalCacheStatus('Initializing global distance cache...');
-        await globalDistanceCache.initializeCache(location);
-        setGlobalCacheStatus(
-          `Global cache loaded with ${globalDistanceCache.getCacheSize()} distances`
-        );
-
-        globalDistanceCache.subscribe((cache) => {
-          setGlobalCacheStatus(`Global cache: ${cache.size} distances loaded`);
-          if (toilets.length > 0) {
-            setToilets([...toilets]);
-          }
-          if (topRatedToilets.length > 0) {
-            setTopRatedToilets([...topRatedToilets]);
-          }
-        });
-      } else {
-        console.log('⚠️ Could not get user location, using default');
-        setUserLocation({
-          latitude: 12.9716,
-          longitude: 77.5946,
-        });
-        setUserLocationAddress('Chennai, Tamil Nadu');
-      }
-    } catch (error) {
-      console.error('❌ Error getting location for Home Screen:', error);
-      setUserLocation({
-        latitude: 12.9716,
-        longitude: 77.5946,
-      });
-      setUserLocationAddress('Chennai, Tamil Nadu');
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
-  const performSearch = async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    try {
-      console.log('🔍 === PERFORMING SEARCH WITH GLOBAL CACHE ===');
-      console.log(`Query: "${searchQuery}"`);
-
-      const results = await searchForToilets(
-        searchQuery,
-        userLocation || undefined
-      );
-      console.log(`📊 Search returned ${results.length} results`);
-
-      const filtered = applyFilters(
-        results,
-        currentFilters,
-        userLocation || undefined
-      );
-      setSearchResults(filtered);
-
-      console.log(`✅ Search complete: ${filtered.length} filtered results`);
-    } catch (error) {
-      console.error('❌ Error searching toilets:', error);
-      setSearchResults([]);
-    }
+  const initializeApp = async () => {
+    await loadToilets();
   };
 
   const loadToilets = async () => {
     try {
       setLoading(true);
-      setError(null);
-      setConnectionStatus('Testing connection...');
-
-      const connectionResult = await testConnection();
-      if (!connectionResult.success) {
-        setConnectionStatus('Connection failed');
-        setError(`Connection failed: ${connectionResult.error}`);
-        console.error('Connection details:', connectionResult.details);
-        return;
-      }
-
-      setConnectionStatus('Loading toilets...');
-
-      console.log('🗺️ === LOADING ALL TOILETS ===');
-      const allToilets = await getAllToilets(userLocation || undefined);
-
-      console.log(`📊 Loaded ${allToilets.length} toilets`);
-      setToilets(allToilets);
-
-      console.log('⭐ === LOADING TOP RATED TOILETS ===');
-      const topRated = await getTopRated(5, userLocation || undefined);
-
-      console.log(`⭐ Loaded ${topRated.length} top rated toilets`);
-      setTopRatedToilets(topRated);
-
-      if (allToilets.length === 0) {
-        setConnectionStatus('No toilets found');
-        setError(
-          'The database appears to be empty. Please check if data has been imported.'
-        );
-      } else {
-        setConnectionStatus(`Connected`);
-      }
-
-      const filtered = applyFilters(
-        allToilets,
-        currentFilters,
-        userLocation || undefined
-      );
-      setFilteredToilets(filtered);
+      
+      // Simulate API loading delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setToilets(mockToilets);
+      setTopRatedToilets(mockToilets.sort((a, b) => b.rating - a.rating).slice(0, 3));
+      setFilteredToilets(mockToilets);
+      
+      // Mock user location
+      setUserLocation({
+        latitude: 12.9716,
+        longitude: 77.5946,
+      });
     } catch (error) {
-      console.error('❌ Error loading toilets:', error);
-      setConnectionStatus('Error loading data');
-      setError(error.message || 'Failed to load toilets. Please try again.');
+      console.error('Error loading toilets:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const performSearch = () => {
+    const results = mockToilets.filter(toilet =>
+      toilet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      toilet.address.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredToilets(results);
+  };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadToilets(), getUserLocation()]);
+    await loadToilets();
     setRefreshing(false);
   }, []);
 
-  const handleApplyFilters = async (filters) => {
-    console.log('🔍 Applying new filters:', filters);
-    setCurrentFilters(filters);
-  };
-
-  const getDistance = (toilet) => {
-    return getToiletDistance(toilet, userLocation || undefined);
-  };
-
   const navigateToToiletDetail = (toilet) => {
-    console.log('🚀 Navigating to toilet detail:', toilet.uuid || toilet._id);
-    recentToiletCache.addRecentView(toilet);
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.uuid || toilet._id },
+      params: { 
+        toiletId: toilet.uuid || toilet._id,
+        name: toilet.name,
+        address: toilet.address,
+        rating: toilet.rating.toString(),
+        reviews: toilet.reviews.toString(),
+        distance: toilet.distance,
+        image: toilet.image_url,
+        isOpen: toilet.status === 'open' ? 'true' : 'false',
+        features: JSON.stringify(toilet.features || [])
+      },
     });
   };
 
@@ -266,34 +207,43 @@ export default function HomeScreen() {
     router.push('/open-now');
   };
 
-  const handleShareToilet = (toilet) => {
-    setSelectedToilet(toilet);
-    setShareModalVisible(true);
+  const getStatusColor = (status) => {
+    return status === 'open' ? '#10B981' : '#EF4444';
   };
 
-  const getDisplayToilets = () => {
-    if (searchQuery.length > 0) {
-      return searchResults;
+  const getBadgeColor = (rating) => {
+    if (rating >= 4.8) return '#E74C3C';
+    if (rating >= 4.6) return '#8E44AD';
+    if (rating >= 4.4) return '#2980B9';
+    return '#34C759';
+  };
+
+  const getBadgeText = (rating) => {
+    if (rating >= 4.8) return 'VIP';
+    if (rating >= 4.6) return 'Premium';
+    if (rating >= 4.4) return 'Executive';
+    return 'Quality';
+  };
+
+  const renderFeatureIcon = (feature) => {
+    switch (feature.toLowerCase()) {
+      case 'wifi':
+        return <Wifi size={12} color="#3B82F6" />;
+      case 'accessible':
+        return <Accessibility size={12} color="#10B981" />;
+      case 'parking':
+        return <Car size={12} color="#6B7280" />;
+      default:
+        return null;
     }
-    return filteredToilets;
   };
-
-  const activeFilterCount = getActiveFilterCount(currentFilters);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.loadingCard}>
           <Text style={styles.loadingTitle}>Namma Loo</Text>
-          <Text style={styles.loadingText}>{connectionStatus}</Text>
-          {locationLoading && (
-            <Text style={styles.loadingSubtext}>Getting your location...</Text>
-          )}
-          {error && (
-            <View style={styles.errorCard}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
+          <Text style={styles.loadingText}>Loading toilets near you...</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadToilets}>
             <RefreshCw size={18} color="#FFFFFF" />
             <Text style={styles.retryText}>Retry</Text>
@@ -312,7 +262,7 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Modern Header with Location and Profile */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View style={styles.locationSection}>
@@ -351,56 +301,184 @@ export default function HomeScreen() {
         </View>
 
         {/* Search Section */}
-        <SearchSection
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          activeFilterCount={activeFilterCount}
-          currentFilters={currentFilters}
-          setFilterModalVisible={setFilterModalVisible}
-          setCurrentFilters={setCurrentFilters}
-        />
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
+            <Search size={18} color="#9CA3AF" />
+            <TextInput
+              style={styles.searchInput}
+              value={searchQuery}
+              placeholder="Search toilets..."
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+          <TouchableOpacity style={styles.filterButton}>
+            <Filter size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
 
         {/* Quick Actions */}
-        {searchQuery.length === 0 && activeFilterCount === 0 && (
-          <QuickActions
-            navigateToNearMe={navigateToNearMe}
-            navigateToTopRated={navigateToTopRated}
-            navigateToOpenNow={navigateToOpenNow}
-          />
+        {searchQuery.length === 0 && (
+          <View style={styles.quickActionsSection}>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <View style={styles.quickActions}>
+              <TouchableOpacity style={styles.quickActionCard} onPress={navigateToNearMe}>
+                <View style={styles.quickActionIcon}>
+                  <Navigation size={24} color="#3B82F6" />
+                </View>
+                <Text style={styles.quickActionTitle}>Near Me</Text>
+                <Text style={styles.quickActionSubtitle}>Find closest toilets</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.quickActionCard} onPress={navigateToTopRated}>
+                <View style={styles.quickActionIcon}>
+                  <Star size={24} color="#F59E0B" />
+                </View>
+                <Text style={styles.quickActionTitle}>Top Rated</Text>
+                <Text style={styles.quickActionSubtitle}>Highest quality</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.quickActionCard} onPress={navigateToOpenNow}>
+                <View style={styles.quickActionIcon}>
+                  <Clock size={24} color="#10B981" />
+                </View>
+                <Text style={styles.quickActionTitle}>Open Now</Text>
+                <Text style={styles.quickActionSubtitle}>Currently available</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
 
-        {/* Toilet Lists */}
-        <ToiletList
-          searchQuery={searchQuery}
-          activeFilterCount={activeFilterCount}
-          displayToilets={getDisplayToilets()}
-          topRatedToilets={topRatedToilets}
-          recentToilets={recentToilets}
-          toilets={toilets}
-          getDistance={getDistance}
-          navigateToToiletDetail={navigateToToiletDetail}
-          navigateToTopRated={navigateToTopRated}
-          navigateToNearMe={navigateToNearMe}
-        />
-
-        {/* Modals */}
-        <FilterModal
-          visible={filterModalVisible}
-          onClose={() => setFilterModalVisible(false)}
-          onApplyFilters={handleApplyFilters}
-          currentFilters={currentFilters}
-        />
-
-        {selectedToilet && (
-          <ShareModal
-            visible={shareModalVisible}
-            onClose={() => {
-              setShareModalVisible(false);
-              setSelectedToilet(null);
-            }}
-            toilet={selectedToilet}
-          />
+        {/* Top Rated Section */}
+        {searchQuery.length === 0 && topRatedToilets.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Top Rated Toilets</Text>
+              <TouchableOpacity onPress={navigateToTopRated}>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+              {topRatedToilets.map((toilet) => (
+                <TouchableOpacity
+                  key={toilet._id}
+                  style={styles.topRatedCard}
+                  onPress={() => navigateToToiletDetail(toilet)}
+                >
+                  <Image source={{ uri: toilet.image_url }} style={styles.topRatedImage} />
+                  <View style={styles.topRatedContent}>
+                    <Text style={styles.topRatedName} numberOfLines={1}>{toilet.name}</Text>
+                    <View style={styles.topRatedRating}>
+                      <Star size={14} color="#F59E0B" fill="#F59E0B" />
+                      <Text style={styles.topRatedRatingText}>{toilet.rating}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         )}
+
+        {/* All Toilets Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {searchQuery.length > 0 ? `Search Results (${filteredToilets.length})` : 'All Toilets'}
+          </Text>
+          
+          {filteredToilets.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MapPin size={64} color="#D1D5DB" />
+              <Text style={styles.emptyStateTitle}>
+                {searchQuery.length > 0 ? 'No toilets found' : 'No toilets available'}
+              </Text>
+              <Text style={styles.emptyStateText}>
+                {searchQuery.length > 0 
+                  ? `No toilets match "${searchQuery}". Try a different search term.`
+                  : 'We couldn\'t find any toilets in your area. Please try again later.'
+                }
+              </Text>
+              {searchQuery.length > 0 && (
+                <TouchableOpacity 
+                  style={styles.clearSearchButton}
+                  onPress={() => setSearchQuery('')}
+                >
+                  <Text style={styles.clearSearchText}>Clear Search</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            filteredToilets.map((toilet) => (
+              <TouchableOpacity
+                key={toilet._id}
+                style={styles.toiletCard}
+                onPress={() => navigateToToiletDetail(toilet)}
+              >
+                <Image source={{ uri: toilet.image_url }} style={styles.toiletImage} />
+                
+                <View style={styles.cardContent}>
+                  <View style={styles.cardHeader}>
+                    <View style={styles.nameContainer}>
+                      <Text style={styles.toiletName} numberOfLines={1}>
+                        {toilet.name}
+                      </Text>
+                      <View style={[styles.badge, { backgroundColor: getBadgeColor(toilet.rating) }]}>
+                        <Text style={styles.badgeText}>{getBadgeText(toilet.rating)}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.distanceContainer}>
+                      <MapPin size={12} color="#3B82F6" />
+                      <Text style={styles.distanceText}>{toilet.distance}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.toiletAddress} numberOfLines={1}>{toilet.address}</Text>
+
+                  <View style={styles.ratingRow}>
+                    <View style={styles.ratingContainer}>
+                      <Star size={16} color="#F59E0B" fill="#F59E0B" />
+                      <Text style={styles.ratingText}>{toilet.rating}</Text>
+                      <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
+                    </View>
+                    
+                    <View style={styles.statusContainer}>
+                      <View style={[styles.statusDot, { backgroundColor: getStatusColor(toilet.status) }]} />
+                      <Text style={[styles.statusText, { color: getStatusColor(toilet.status) }]}>
+                        {toilet.status === 'open' ? 'Open' : 'Closed'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.hoursRow}>
+                    <Clock size={12} color="#6B7280" />
+                    <Text style={styles.hoursText}>{toilet.working_hours}</Text>
+                  </View>
+
+                  <View style={styles.featuresContainer}>
+                    {toilet.features.slice(0, 3).map((feature, index) => (
+                      <View key={index} style={styles.featureTag}>
+                        {renderFeatureIcon(feature)}
+                        <Text style={styles.featureText}>{feature}</Text>
+                      </View>
+                    ))}
+                    {toilet.features.length > 3 && (
+                      <View style={styles.moreFeatures}>
+                        <Text style={styles.moreText}>+{toilet.features.length - 3}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.cardActions}>
+                  <TouchableOpacity style={styles.favoriteButton}>
+                    <Heart size={16} color="#EF4444" />
+                  </TouchableOpacity>
+                  <ChevronRight size={20} color="#9CA3AF" />
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -410,6 +488,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+    marginTop: 40,
   },
   container: {
     flex: 1,
@@ -421,6 +500,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     padding: 24,
+    marginTop: 40,
   },
   loadingCard: {
     backgroundColor: '#FFFFFF',
@@ -444,26 +524,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 8,
-  },
-  loadingSubtext: {
-    fontSize: 14,
-    color: '#10B981',
-    textAlign: 'center',
     marginBottom: 20,
-  },
-  errorCard: {
-    backgroundColor: '#FEF2F2',
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#EF4444',
-  },
-  errorText: {
-    color: '#DC2626',
-    fontSize: 14,
-    textAlign: 'center',
   },
   retryButton: {
     flexDirection: 'row',
@@ -560,5 +621,305 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#10B981',
     fontWeight: '500',
+  },
+  searchSection: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    gap: 12,
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  filterButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quickActionsSection: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  quickActionSubtitle: {
+    fontSize: 12,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  section: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#3B82F6',
+    fontWeight: '600',
+  },
+  horizontalScroll: {
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+  },
+  topRatedCard: {
+    width: 140,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  topRatedImage: {
+    width: '100%',
+    height: 80,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  topRatedContent: {
+    padding: 12,
+  },
+  topRatedName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  topRatedRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  topRatedRatingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  toiletCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    overflow: 'hidden',
+    flexDirection: 'row',
+  },
+  toiletImage: {
+    width: 100,
+    height: 120,
+  },
+  cardContent: {
+    flex: 1,
+    padding: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  nameContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  toiletName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  distanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  distanceText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3B82F6',
+  },
+  toiletAddress: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  reviewCount: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  hoursRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 6,
+  },
+  hoursText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  featureTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  featureText: {
+    fontSize: 10,
+    color: '#0369A1',
+    fontWeight: '500',
+  },
+  moreFeatures: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  moreText: {
+    fontSize: 10,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  cardActions: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingRight: 16,
+  },
+  favoriteButton: {
+    padding: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#6B7280',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  clearSearchButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  clearSearchText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, Award } from 'lucide-react-native';
+import { ArrowLeft, Star, MapPin, Clock, Award, RefreshCw } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -48,6 +48,7 @@ export default function TopRatedPage() {
   const router = useRouter();
   const [toilets, setToilets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadToilets();
@@ -56,12 +57,14 @@ export default function TopRatedPage() {
   const loadToilets = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setToilets(mockTopRatedToilets);
     } catch (error) {
       console.error('Error loading top rated toilets:', error);
-      Alert.alert('Error', 'Failed to load toilets. Please try again.');
+      setError('Failed to load top rated toilets. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -84,15 +87,71 @@ export default function TopRatedPage() {
   const navigateToToiletDetail = (toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.id }
+      params: { 
+        toiletId: toilet.id,
+        name: toilet.name,
+        address: toilet.address,
+        rating: toilet.rating.toString(),
+        reviews: toilet.reviews.toString(),
+        distance: toilet.distance,
+        image: toilet.image_url,
+        isOpen: 'true',
+        features: JSON.stringify(toilet.highlights || [])
+      }
     });
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1a1a1a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Top Rated</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
         <View style={styles.loadingContainer}>
+          <Award size={48} color="#F59E0B" />
+          <ActivityIndicator size="large" color="#F59E0B" style={styles.spinner} />
           <Text style={styles.loadingText}>Loading top rated toilets...</Text>
+          <Text style={styles.loadingSubtext}>
+            Finding the highest quality facilities for you...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1a1a1a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Top Rated</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
+        <View style={styles.errorContainer}>
+          <Award size={64} color="#EF4444" />
+          <Text style={styles.errorTitle}>Unable to Load Top Rated</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={loadToilets}
+          >
+            <RefreshCw size={16} color="#fff" />
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -114,7 +173,10 @@ export default function TopRatedPage() {
 
       {/* Results Count */}
       <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>{toilets.length} highly rated toilets</Text>
+        <View style={styles.resultsHeaderContent}>
+          <Award size={18} color="#F59E0B" />
+          <Text style={styles.resultsCount}>{toilets.length} highly rated toilets</Text>
+        </View>
         <Text style={styles.resultsSubtext}>
           Sorted by rating • With accurate distances
         </Text>
@@ -126,66 +188,87 @@ export default function TopRatedPage() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {toilets.map((toilet, index) => (
-          <TouchableOpacity 
-            key={toilet.id} 
-            style={styles.toiletCard}
-            onPress={() => navigateToToiletDetail(toilet)}
-            activeOpacity={0.7}
-          >
-            {index === 0 && (
-              <View style={styles.topBadge}>
-                <Award size={16} color="#FFD700" fill="#FFD700" />
-                <Text style={styles.topBadgeText}>#1 Rated</Text>
-              </View>
-            )}
-            
-            <Image 
-              source={{ uri: toilet.image_url }} 
-              style={styles.toiletImage} 
-            />
-            
-            <View style={styles.cardContent}>
-              <View style={styles.cardHeader}>
-                <View style={styles.nameContainer}>
-                  <Text style={styles.toiletName} numberOfLines={1}>
-                    {toilet.name}
-                  </Text>
-                  <View style={[styles.badge, { backgroundColor: getBadgeColor(toilet.rating) }]}>
-                    <Text style={styles.badgeText}>{getBadgeText(toilet.rating)}</Text>
+        {toilets.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Award size={64} color="#ccc" />
+            <Text style={styles.emptyStateTitle}>No Top Rated Toilets</Text>
+            <Text style={styles.emptyStateText}>
+              We couldn't find any highly rated toilets in your area. Check back later as we add more locations.
+            </Text>
+            <TouchableOpacity 
+              style={styles.retryButton} 
+              onPress={loadToilets}
+            >
+              <RefreshCw size={16} color="#fff" />
+              <Text style={styles.retryButtonText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          toilets.map((toilet, index) => (
+            <TouchableOpacity 
+              key={toilet.id} 
+              style={styles.toiletCard}
+              onPress={() => navigateToToiletDetail(toilet)}
+              activeOpacity={0.7}
+            >
+              {index === 0 && (
+                <View style={styles.topBadge}>
+                  <Award size={16} color="#FFD700" fill="#FFD700" />
+                  <Text style={styles.topBadgeText}>#1 Rated</Text>
+                </View>
+              )}
+              
+              <Image 
+                source={{ uri: toilet.image_url }} 
+                style={styles.toiletImage} 
+              />
+              
+              <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.nameContainer}>
+                    <Text style={styles.toiletName} numberOfLines={1}>
+                      {toilet.name}
+                    </Text>
+                    <View style={[styles.badge, { backgroundColor: getBadgeColor(toilet.rating) }]}>
+                      <Text style={styles.badgeText}>{getBadgeText(toilet.rating)}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.distanceContainer}>
+                    <MapPin size={12} color="#007AFF" />
+                    <Text style={styles.distanceText}>{toilet.distance}</Text>
                   </View>
                 </View>
-                <View style={styles.distanceContainer}>
-                  <MapPin size={12} color="#007AFF" />
-                  <Text style={styles.distanceText}>{toilet.distance}</Text>
-                </View>
-              </View>
 
-              <View style={styles.ratingRow}>
-                <View style={styles.ratingContainer}>
-                  <Star size={16} color="#FFD700" fill="#FFD700" />
-                  <Text style={styles.ratingText}>{toilet.rating.toFixed(1)}</Text>
-                  <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
-                </View>
-              </View>
-
-              <View style={styles.hoursRow}>
-                <Clock size={12} color="#666" />
-                <Text style={styles.hoursText}>
-                  {toilet.working_hours}
+                <Text style={styles.toiletAddress} numberOfLines={1}>
+                  {toilet.address}
                 </Text>
-              </View>
 
-              <View style={styles.highlightsContainer}>
-                {toilet.highlights.map((highlight, index) => (
-                  <View key={index} style={styles.highlightTag}>
-                    <Text style={styles.highlightText}>"{highlight}"</Text>
+                <View style={styles.ratingRow}>
+                  <View style={styles.ratingContainer}>
+                    <Star size={16} color="#FFD700" fill="#FFD700" />
+                    <Text style={styles.ratingText}>{toilet.rating.toFixed(1)}</Text>
+                    <Text style={styles.reviewCount}>({toilet.reviews} reviews)</Text>
                   </View>
-                ))}
+                </View>
+
+                <View style={styles.hoursRow}>
+                  <Clock size={12} color="#666" />
+                  <Text style={styles.hoursText}>
+                    {toilet.working_hours}
+                  </Text>
+                </View>
+
+                <View style={styles.highlightsContainer}>
+                  {toilet.highlights.map((highlight, index) => (
+                    <View key={index} style={styles.highlightTag}>
+                      <Text style={styles.highlightText}>"{highlight}"</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -195,17 +278,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',
@@ -230,6 +302,51 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  spinner: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#EF4444',
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
   resultsHeader: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -237,11 +354,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  resultsHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
   resultsCount: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 2,
   },
   resultsSubtext: {
     fontSize: 14,
@@ -253,6 +375,39 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#666',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   toiletCard: {
     backgroundColor: '#fff',
@@ -307,6 +462,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1a1a1a',
     marginBottom: 6,
+  },
+  toiletAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
   },
   badge: {
     alignSelf: 'flex-start',

@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Star, MapPin, Clock, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Star, MapPin, Clock, CircleCheck as CheckCircle, RefreshCw } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -36,6 +36,7 @@ export default function OpenNowPage() {
   const router = useRouter();
   const [toilets, setToilets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadToilets();
@@ -44,12 +45,14 @@ export default function OpenNowPage() {
   const loadToilets = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setToilets(mockOpenToilets);
     } catch (error) {
       console.error('Error loading open toilets:', error);
-      Alert.alert('Error', 'Failed to load toilets. Please try again.');
+      setError('Failed to load open toilets. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,15 +75,71 @@ export default function OpenNowPage() {
   const navigateToToiletDetail = (toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.id }
+      params: { 
+        toiletId: toilet.id,
+        name: toilet.name,
+        address: toilet.address,
+        rating: toilet.rating.toString(),
+        reviews: toilet.reviews.toString(),
+        distance: toilet.distance,
+        image: toilet.image_url,
+        isOpen: 'true',
+        features: JSON.stringify(toilet.highlights || [])
+      }
     });
   };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1a1a1a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Open Now</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading open toilets...</Text>
+          <Clock size={48} color="#10B981" />
+          <ActivityIndicator size="large" color="#10B981" style={styles.spinner} />
+          <Text style={styles.loadingText}>Finding open toilets...</Text>
+          <Text style={styles.loadingSubtext}>
+            Checking real-time availability and operating hours...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1a1a1a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Open Now</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
+        <View style={styles.errorContainer}>
+          <Clock size={64} color="#EF4444" />
+          <Text style={styles.errorTitle}>Unable to Check Status</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={loadToilets}
+          >
+            <RefreshCw size={16} color="#fff" />
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -102,7 +161,10 @@ export default function OpenNowPage() {
 
       {/* Results Count */}
       <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>{toilets.length} toilets currently open</Text>
+        <View style={styles.resultsHeaderContent}>
+          <CheckCircle size={18} color="#10B981" />
+          <Text style={styles.resultsCount}>{toilets.length} toilets currently open</Text>
+        </View>
         <Text style={styles.resultsSubtext}>
           Real-time availability • With accurate distances
         </Text>
@@ -119,8 +181,15 @@ export default function OpenNowPage() {
             <Clock size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>No Open Toilets</Text>
             <Text style={styles.emptyStateText}>
-              No toilets appear to be open right now. This might be due to limited operating hours data.
+              No toilets appear to be open right now. This might be due to limited operating hours or temporary closures. Please check back later.
             </Text>
+            <TouchableOpacity 
+              style={styles.retryButton} 
+              onPress={loadToilets}
+            >
+              <RefreshCw size={16} color="#fff" />
+              <Text style={styles.retryButtonText}>Check Again</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           toilets.map((toilet, index) => (
@@ -155,6 +224,10 @@ export default function OpenNowPage() {
                     <Text style={styles.distanceText}>{toilet.distance}</Text>
                   </View>
                 </View>
+
+                <Text style={styles.toiletAddress} numberOfLines={1}>
+                  {toilet.address}
+                </Text>
 
                 <View style={styles.ratingRow}>
                   <View style={styles.ratingContainer}>
@@ -192,17 +265,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -226,6 +288,51 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  spinner: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#EF4444',
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
   resultsHeader: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -233,11 +340,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  resultsHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
   resultsCount: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1a1a1a',
-    marginBottom: 2,
   },
   resultsSubtext: {
     fontSize: 14,
@@ -267,6 +379,21 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 30,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   toiletCard: {
     backgroundColor: '#fff',
@@ -321,6 +448,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1a1a1a',
     marginBottom: 6,
+  },
+  toiletAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
   },
   badge: {
     alignSelf: 'flex-start',

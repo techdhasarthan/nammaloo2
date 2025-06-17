@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Star, MapPin, Clock, RefreshCw, Navigation } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -48,6 +48,7 @@ export default function NearMePage() {
   const router = useRouter();
   const [toilets, setToilets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadNearbyToilets();
@@ -56,12 +57,14 @@ export default function NearMePage() {
   const loadNearbyToilets = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       setToilets(mockNearbyToilets);
     } catch (error) {
       console.error('Error loading nearby toilets:', error);
-      Alert.alert('Error', 'Failed to load nearby toilets. Please try again.');
+      setError('Failed to load nearby toilets. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +77,17 @@ export default function NearMePage() {
   const navigateToToiletDetail = (toilet) => {
     router.push({
       pathname: '/toilet-detail',
-      params: { toiletId: toilet.id }
+      params: { 
+        toiletId: toilet.id,
+        name: toilet.name,
+        address: toilet.address,
+        rating: toilet.rating.toString(),
+        reviews: toilet.reviews.toString(),
+        distance: toilet.distance,
+        image: toilet.image_url,
+        isOpen: toilet.status === 'open' ? 'true' : 'false',
+        features: JSON.stringify(['Clean', 'Accessible'])
+      }
     });
   };
 
@@ -92,6 +105,17 @@ export default function NearMePage() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1a1a1a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Near Me</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
         <View style={styles.loadingContainer}>
           <Navigation size={48} color="#007AFF" />
           <ActivityIndicator size="large" color="#007AFF" style={styles.spinner} />
@@ -99,6 +123,36 @@ export default function NearMePage() {
           <Text style={styles.loadingSubtext}>
             Getting your location and calculating distances...
           </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1a1a1a" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Near Me</Text>
+          <View style={styles.placeholder} />
+        </View>
+        
+        <View style={styles.errorContainer}>
+          <MapPin size={64} color="#EF4444" />
+          <Text style={styles.errorTitle}>Unable to Load Toilets</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={handleRefreshToilets}
+          >
+            <RefreshCw size={16} color="#fff" />
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -118,12 +172,8 @@ export default function NearMePage() {
         <TouchableOpacity 
           style={styles.refreshButton}
           onPress={handleRefreshToilets}
-          disabled={loading}
         >
-          <RefreshCw 
-            size={20} 
-            color={loading ? "#ccc" : "#007AFF"} 
-          />
+          <RefreshCw size={20} color="#007AFF" />
         </TouchableOpacity>
       </View>
 
@@ -151,17 +201,14 @@ export default function NearMePage() {
             <MapPin size={64} color="#ccc" />
             <Text style={styles.emptyStateTitle}>No Nearby Toilets</Text>
             <Text style={styles.emptyStateText}>
-              No toilets found within 10km of your location.
+              No toilets found within 10km of your location. Try expanding your search area or check back later.
             </Text>
             <TouchableOpacity 
               style={styles.retryButton} 
               onPress={handleRefreshToilets}
-              disabled={loading}
             >
               <RefreshCw size={16} color="#fff" />
-              <Text style={styles.retryButtonText}>
-                {loading ? 'Searching...' : 'Try Again'}
-              </Text>
+              <Text style={styles.retryButtonText}>Search Again</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -196,6 +243,10 @@ export default function NearMePage() {
                   </View>
                 </View>
 
+                <Text style={styles.toiletAddress} numberOfLines={1}>
+                  {toilet.address}
+                </Text>
+
                 <View style={styles.ratingRow}>
                   <View style={styles.ratingContainer}>
                     <Star size={14} color="#FFD700" fill="#FFD700" />
@@ -219,7 +270,7 @@ export default function NearMePage() {
                 </View>
 
                 <View style={styles.durationRow}>
-                  <Clock size={12} color="#666" />
+                  <Navigation size={12} color="#666" />
                   <Text style={styles.durationText}>
                     {toilet.duration} drive
                   </Text>
@@ -237,30 +288,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  spinner: {
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  loadingSubtext: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -286,6 +313,54 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
     backgroundColor: '#f0f8ff',
+  },
+  placeholder: {
+    width: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  spinner: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#EF4444',
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
   },
   resultsHeader: {
     paddingHorizontal: 20,
@@ -402,6 +477,11 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     flex: 1,
     marginRight: 12,
+  },
+  toiletAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
   },
   distanceContainer: {
     flexDirection: 'row',

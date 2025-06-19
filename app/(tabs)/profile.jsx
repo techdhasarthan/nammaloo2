@@ -4,7 +4,9 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   ScrollView, 
-  SafeAreaView 
+  SafeAreaView,
+  Image,
+  Alert
 } from 'react-native';
 import { 
   Ionicons,
@@ -12,8 +14,34 @@ import {
   AntDesign,
   Feather
 } from '@expo/vector-icons';
+import { useAuth } from '../../contexts/AuthContext';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/login');
+          },
+        },
+      ]
+    );
+  };
+
   const menuItems = [
     {
       icon: 'heart',
@@ -70,18 +98,27 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={32} color="#FFFFFF" />
-            </View>
+            {user?.picture ? (
+              <Image source={{ uri: user.picture }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatar}>
+                <Ionicons name="person" size={32} color="#FFFFFF" />
+              </View>
+            )}
             <View style={styles.onlineIndicator} />
           </View>
           
-          <Text style={styles.userName}>Guest User</Text>
-          <Text style={styles.userLocation}>Bangalore, Karnataka</Text>
+          <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
+          <Text style={styles.userEmail}>{user?.email || 'guest@nammaloo.com'}</Text>
           
-          <TouchableOpacity style={styles.editButton}>
-            <Text style={styles.editButtonText}>Sign In / Sign Up</Text>
-          </TouchableOpacity>
+          {user?.isGuest && (
+            <TouchableOpacity 
+              style={styles.upgradeButton}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.upgradeButtonText}>Sign In with Google</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Stats Cards */}
@@ -116,11 +153,25 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           ))}
+
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.logoutItem} onPress={handleLogout}>
+            <View style={[styles.menuIcon, { backgroundColor: '#EF4444' }]}>
+              <Ionicons name="log-out" size={20} color="#FFFFFF" />
+            </View>
+            
+            <View style={styles.menuContent}>
+              <Text style={styles.menuTitle}>Logout</Text>
+              <Text style={styles.menuSubtitle}>Sign out of your account</Text>
+            </View>
+            
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
         </View>
 
         {/* App Info */}
         <View style={styles.appInfo}>
-          <Text style={styles.appName}>Toilet Finder</Text>
+          <Text style={styles.appName}>Namma Loo</Text>
           <Text style={styles.appVersion}>Version 1.0.0</Text>
           <Text style={styles.appDescription}>
             Find clean and accessible toilets near you with real-time information and user reviews.
@@ -165,6 +216,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
   onlineIndicator: {
     position: 'absolute',
     bottom: 4,
@@ -182,18 +238,18 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginBottom: 4,
   },
-  userLocation: {
+  userEmail: {
     fontSize: 16,
     color: '#6B7280',
     marginBottom: 20,
   },
-  editButton: {
+  upgradeButton: {
     backgroundColor: '#3B82F6',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
   },
-  editButtonText: {
+  upgradeButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
@@ -239,6 +295,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  logoutItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

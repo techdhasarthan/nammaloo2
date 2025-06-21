@@ -12,8 +12,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '../../firebaseConfig';
-import { useAuth } from '../../contexts/AuthContext';
+import { auth } from '../firebaseConfig';
+import { useAuth } from '../contexts/AuthContext';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -58,7 +58,7 @@ export default function LoginScreen() {
       };
 
       // Update auth context
-      login(userData);
+      await login(userData);
 
       // Navigate to main app
       router.replace('/(tabs)');
@@ -74,18 +74,27 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGuestLogin = () => {
-    const guestData = {
-      uid: 'guest_' + Date.now(),
-      email: 'guest@nammaloo.com',
-      name: 'Guest User',
-      picture: null,
-      accessToken: null,
-      isGuest: true,
-    };
+  const handleGuestLogin = async () => {
+    try {
+      setLoading(true);
+      
+      const guestData = {
+        uid: 'guest_' + Date.now(),
+        email: 'guest@nammaloo.com',
+        name: 'Guest User',
+        picture: null,
+        accessToken: null,
+        isGuest: true,
+      };
 
-    login(guestData);
-    router.replace('/(tabs)');
+      await login(guestData);
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.error('Guest login error:', error);
+      Alert.alert('Error', 'Failed to continue as guest. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

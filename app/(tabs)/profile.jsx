@@ -14,32 +14,12 @@ import {
   AntDesign,
   Feather
 } from '@expo/vector-icons';
-import { useAuth } from '../../contexts/AuthContext';
-import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/login');
-          },
-        },
-      ]
-    );
+  const user = {
+    name: 'Guest User',
+    email: 'guest@nammaloo.com',
+    isGuest: true
   };
 
   const menuItems = [
@@ -92,33 +72,31 @@ export default function ProfileScreen() {
     return <IconComponent size={20} color="#FFFFFF" name={item.icon} />;
   };
 
+  const handleMenuPress = (title) => {
+    Alert.alert(title, `${title} feature coming soon!`);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            {user?.picture ? (
-              <Image source={{ uri: user.picture }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatar}>
-                <Ionicons name="person" size={32} color="#FFFFFF" />
-              </View>
-            )}
+            <View style={styles.avatar}>
+              <Ionicons name="person" size={32} color="#FFFFFF" />
+            </View>
             <View style={styles.onlineIndicator} />
           </View>
           
           <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
           <Text style={styles.userEmail}>{user?.email || 'guest@nammaloo.com'}</Text>
           
-          {user?.isGuest && (
-            <TouchableOpacity 
-              style={styles.upgradeButton}
-              onPress={() => router.push('/login')}
-            >
-              <Text style={styles.upgradeButtonText}>Sign In with Google</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity 
+            style={styles.upgradeButton}
+            onPress={() => Alert.alert('Coming Soon', 'Account features will be available soon!')}
+          >
+            <Text style={styles.upgradeButtonText}>Create Account</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Stats Cards */}
@@ -140,7 +118,11 @@ export default function ProfileScreen() {
         {/* Menu Items */}
         <View style={styles.menuContainer}>
           {menuItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.menuItem}>
+            <TouchableOpacity 
+              key={index} 
+              style={styles.menuItem}
+              onPress={() => handleMenuPress(item.title)}
+            >
               <View style={[styles.menuIcon, { backgroundColor: item.color }]}>
                 {renderIcon(item)}
               </View>
@@ -153,20 +135,6 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           ))}
-
-          {/* Logout Button */}
-          <TouchableOpacity style={styles.logoutItem} onPress={handleLogout}>
-            <View style={[styles.menuIcon, { backgroundColor: '#EF4444' }]}>
-              <Ionicons name="log-out" size={20} color="#FFFFFF" />
-            </View>
-            
-            <View style={styles.menuContent}>
-              <Text style={styles.menuTitle}>Logout</Text>
-              <Text style={styles.menuSubtitle}>Sign out of your account</Text>
-            </View>
-            
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
         </View>
 
         {/* App Info */}
@@ -295,23 +263,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  logoutItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

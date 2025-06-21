@@ -13,7 +13,7 @@ export default function IndexScreen() {
       if (isAuthenticated) {
         router.replace('/(tabs)');
       } else {
-        router.replace('/login');
+        router.replace('/(auth)/login');
       }
     }
   }, [isAuthenticated, isLoading]);

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getStoredUserData, clearUserData } from '../lib/auth';
+import { getStoredUserData, clearUserData, storeUserData } from '../lib/auth';
 
 const AuthContext = createContext({});
 
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       const userData = await getStoredUserData();
       
-      if (userData && userData.accessToken) {
+      if (userData && (userData.accessToken || userData.isGuest)) {
         setUser(userData);
         setIsAuthenticated(true);
       } else {
@@ -41,9 +41,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (userData) => {
-    setUser(userData);
-    setIsAuthenticated(true);
+  const login = async (userData) => {
+    try {
+      await storeUserData(userData);
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   const logout = async () => {
